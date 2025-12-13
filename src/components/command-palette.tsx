@@ -9,7 +9,6 @@ import {
     Database,
     BarChart2,
     Map,
-    Star,
     TrendingUp,
     Settings,
     Moon,
@@ -20,7 +19,7 @@ import { useTheme } from 'next-themes';
 export function CommandPalette() {
     const [open, setOpen] = useState(false);
     const router = useRouter();
-    const { setTheme, theme } = useTheme();
+    const { setTheme } = useTheme();
 
     // Toggle with Cmd+K or Ctrl+K
     useEffect(() => {

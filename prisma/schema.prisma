@@ -1,0 +1,442 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// PNODE MODELS - Core entities
+// ============================================
+
+/// Represents a pNode in the Xandeum network
+model PNode {
+  id             String  @id @default(cuid())
+  pubkey         String  @unique /// On-chain public key (nodePubkey)
+  gossipEndpoint String /// IP:Port for gossip
+  rpcEndpoint    String? /// RPC endpoint URL
+  tpuEndpoint    String? /// TPU endpoint
+  version        String /// Software version
+  featureSet     BigInt? /// Feature set ID
+  shredVersion   Int? /// Shred version
+
+  // Location data
+  location   String? /// Geographic region
+  country    String?
+  city       String?
+  latitude   Float?
+  longitude  Float?
+  datacenter String?
+  asn        String?
+
+  // Timestamps
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @updatedAt
+
+  // Relations
+  snapshots         PNodeSnapshot[]
+  performanceAlerts Alert[]
+  events            NetworkEvent[]
+
+  @@index([pubkey])
+  @@index([lastSeen])
+  @@index([location])
+}
+
+// ============================================
+// VALIDATOR MODELS - Staking & Voting data
+// ============================================
+
+/// Validator information from getVoteAccounts
+model Validator {
+  id String @id @default(cuid())
+
+  // Identity
+  nodePubkey String @unique /// Node identity pubkey (may or may not have matching PNode)
+  votePubkey String @unique /// Vote account pubkey
+
+  // Current state
+  isActive     Boolean @default(true) /// In current vote accounts
+  isDelinquent Boolean @default(false) /// In delinquent list
+
+  // Commission
+  commission Int /// Commission percentage (0-100)
+
+  // Timestamps
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @updatedAt
+
+  // Relations - NOTE: not all validators have corresponding PNodes in cluster
+  snapshots ValidatorSnapshot[]
+
+  @@index([nodePubkey])
+  @@index([votePubkey])
+  @@index([isActive])
+}
+
+/// Historical snapshot of validator state
+model ValidatorSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Stake info
+  activatedStake BigInt /// Lamports staked
+
+  // Voting performance
+  lastVote     BigInt /// Last vote slot
+  rootSlot     BigInt /// Root slot
+  epochCredits BigInt /// Credits earned this epoch
+  priorCredits BigInt /// Credits from prior epoch
+
+  // Status
+  isDelinquent     Boolean
+  epochVoteAccount Boolean
+
+  // Relation
+  validatorId String
+  validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@index([validatorId, timestamp])
+  @@index([timestamp])
+}
+
+// ============================================
+// EPOCH MODELS - Epoch & Performance data
+// ============================================
+
+/// Epoch information snapshot
+model EpochSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Epoch info
+  epoch            Int    @unique /// Epoch number
+  absoluteSlot     BigInt /// Absolute slot number
+  blockHeight      BigInt /// Block height
+  slotIndex        BigInt /// Current slot within epoch
+  slotsInEpoch     BigInt /// Total slots in epoch
+  transactionCount BigInt /// Total transactions processed
+
+  // Progress
+  epochProgress Float /// Percentage through epoch (0-100)
+
+  @@index([epoch])
+  @@index([timestamp])
+}
+
+/// Performance samples from getRecentPerformanceSamples
+model PerformanceSample {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Sample data
+  slot                   BigInt /// Slot when sample was taken
+  numSlots               Int /// Number of slots in sample
+  numTransactions        Int /// Total transactions in sample
+  numNonVoteTransactions Int /// Non-vote transactions
+  samplePeriodSecs       Int /// Sample period in seconds
+
+  // Calculated metrics
+  tps        Float /// Transactions per second
+  nonVoteTps Float /// Non-vote TPS
+  slotTime   Float /// Average time per slot (ms)
+
+  @@index([timestamp])
+  @@index([slot])
+}
+
+/// Network economics snapshot
+model EconomicsSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Supply data (from getSupply)
+  totalSupply          BigInt /// Total supply in lamports
+  circulatingSupply    BigInt /// Circulating supply
+  nonCirculatingSupply BigInt /// Non-circulating supply
+
+  // Inflation data (from getInflationRate)
+  inflationEpoch      Int /// Epoch for inflation rate
+  inflationTotal      Float /// Total inflation rate
+  inflationValidator  Float /// Validator inflation rate
+  inflationFoundation Float /// Foundation inflation rate
+
+  // Staking summary
+  totalStaked          BigInt /// Total staked lamports
+  stakingParticipation Float /// % of supply staked
+
+  // Minimum delegation
+  stakeMinimumDelegation BigInt
+
+  @@index([timestamp])
+}
+
+/// Historical snapshot of pNode state - captured at regular intervals
+model PNodeSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Status
+  status String /// online, offline, delinquent
+
+  // Performance metrics
+  performanceScore Int
+  uptime           Float /// Percentage 0-100
+  averageLatency   Float /// Milliseconds
+  successRate      Float /// Percentage 0-100
+
+  // Storage metrics
+  capacityBytes BigInt
+  usedBytes     BigInt
+  utilization   Float /// Percentage 0-100
+  fileSystems   Int
+
+  // Relation
+  pnodeId String
+  pnode   PNode  @relation(fields: [pnodeId], references: [id], onDelete: Cascade)
+
+  @@index([pnodeId, timestamp])
+  @@index([timestamp])
+}
+
+// ============================================
+// NETWORK MODELS - Network-wide metrics
+// ============================================
+
+/// Network-wide statistics snapshot
+model NetworkSnapshot {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  // Node counts
+  totalPNodes      Int
+  onlinePNodes     Int
+  offlinePNodes    Int
+  delinquentPNodes Int
+
+  // Storage metrics
+  totalCapacityBytes BigInt
+  totalUsedBytes     BigInt
+  networkUtilization Float
+
+  // Performance metrics
+  healthScore        Int
+  averagePerformance Int
+  averageLatency     Float
+
+  // Validator metrics (from getVoteAccounts)
+  totalValidators      Int?
+  activeValidators     Int?
+  delinquentValidators Int?
+  totalStake           BigInt? /// Total activated stake
+  averageCommission    Float? /// Average validator commission
+
+  // Epoch info (from getEpochInfo)
+  currentEpoch     Int?
+  currentSlot      BigInt?
+  blockHeight      BigInt?
+  transactionCount BigInt? /// Total network transactions
+
+  // Performance (from getRecentPerformanceSamples)
+  currentTps Float? /// Current TPS
+  nonVoteTps Float? /// Non-vote TPS
+
+  // Version distribution (stored as JSON)
+  versionDistribution Json?
+
+  // Geographic distribution (stored as JSON)
+  geoDistribution Json?
+
+  @@index([timestamp])
+}
+
+/// Network events - status changes, alerts, etc.
+model NetworkEvent {
+  id          String    @id @default(cuid())
+  timestamp   DateTime  @default(now())
+  type        EventType
+  severity    Severity
+  title       String
+  description String?
+  metadata    Json?
+
+  // Optional relation to specific pNode
+  pnodeId String?
+  pnode   PNode?  @relation(fields: [pnodeId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([type])
+  @@index([severity])
+}
+
+enum EventType {
+  NODE_ONLINE
+  NODE_OFFLINE
+  NODE_DELINQUENT
+  PERFORMANCE_DEGRADATION
+  PERFORMANCE_IMPROVEMENT
+  STORAGE_THRESHOLD
+  VERSION_UPDATE
+  NETWORK_MILESTONE
+  ANOMALY_DETECTED
+}
+
+enum Severity {
+  INFO
+  WARNING
+  CRITICAL
+  SUCCESS
+}
+
+// ============================================
+// ALERTING & MONITORING
+// ============================================
+
+/// User-configurable alerts
+model AlertRule {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  enabled     Boolean @default(true)
+
+  // Alert configuration
+  metric    String /// e.g., "uptime", "latency", "storage"
+  operator  String /// e.g., "<", ">", "=="
+  threshold Float
+
+  // Scope
+  scope       AlertScope @default(NETWORK)
+  pnodeFilter String? /// Optional pNode pubkey filter
+
+  // Notification settings
+  notifyEmail     String?
+  notifyWebhook   String?
+  cooldownMinutes Int     @default(15)
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastTriggered DateTime?
+
+  // Triggered alerts
+  alerts Alert[]
+}
+
+enum AlertScope {
+  NETWORK
+  PNODE
+}
+
+/// Triggered alert instances
+model Alert {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  severity  Severity
+  message   String
+  value     Float /// The metric value that triggered the alert
+  threshold Float /// The threshold that was crossed
+
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+
+  // Relations
+  ruleId String
+  rule   AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  pnodeId String?
+  pnode   PNode?  @relation(fields: [pnodeId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([resolved])
+}
+
+// ============================================
+// ANALYTICS & INSIGHTS
+// ============================================
+
+/// Pre-computed analytics for faster dashboard loading
+model DailyAnalytics {
+  id   String   @id @default(cuid())
+  date DateTime @unique @db.Date
+
+  // Network metrics
+  avgPNodes  Int
+  peakPNodes Int
+  minPNodes  Int
+
+  avgHealthScore Float
+  avgPerformance Float
+  avgUptime      Float
+
+  // Storage
+  avgCapacity    BigInt
+  avgUsed        BigInt
+  avgUtilization Float
+
+  // Events
+  totalEvents    Int
+  criticalEvents Int
+  warningEvents  Int
+
+  // New nodes
+  newPNodes  Int
+  lostPNodes Int
+
+  @@index([date])
+}
+
+/// Anomaly detection records
+model Anomaly {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+
+  metric        String /// The metric that showed anomaly
+  expectedValue Float
+  actualValue   Float
+  deviation     Float /// Standard deviations from mean
+
+  pnodeId     String?
+  description String?
+
+  // Was it a true anomaly or false positive?
+  confirmed  Boolean?
+  reviewedAt DateTime?
+
+  @@index([timestamp])
+  @@index([metric])
+}
+
+// ============================================
+// API & ACCESS
+// ============================================
+
+/// API keys for external access
+model ApiKey {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  name        String
+  description String?
+
+  // Permissions
+  permissions Json @default("[]")
+  rateLimit   Int  @default(1000) /// Requests per hour
+
+  // Usage tracking
+  lastUsed      DateTime?
+  totalRequests BigInt    @default(0)
+
+  // Status
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}

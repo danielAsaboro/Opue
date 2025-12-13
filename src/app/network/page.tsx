@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FullPageError } from '@/components/ui/error-display';
 import { formatBytes, formatPercentage } from '@/lib/format';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { NetworkTopology } from '@/components/network/network-topology';
 
 export default function NetworkPage() {
     const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useNetworkStats();
@@ -131,6 +132,19 @@ export default function NetworkPage() {
                         </p>
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Network Topology */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight">Network Topology</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Live visualization of pNode distribution and gossip connections
+                        </p>
+                    </div>
+                </div>
+                {pnodes && <NetworkTopology pnodes={pnodes} />}
             </div>
 
             {/* Charts Grid */}

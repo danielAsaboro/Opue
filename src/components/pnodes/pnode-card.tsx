@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { PNode } from '@/types/pnode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -14,6 +14,8 @@ const links: { label: string; path: string }[] = [
   { label: 'Home', path: '/' },
   { label: 'pNodes', path: '/pnodes' },
   { label: 'Network', path: '/network' },
+  { label: 'Analytics', path: '/analytics' },
+  { label: 'Alerts', path: '/alerts' },
   { label: 'Insights', path: '/insights' },
   { label: 'Compare', path: '/compare' },
 ]
