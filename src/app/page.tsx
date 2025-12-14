@@ -1,38 +1,39 @@
-'use client';
+'use client'
 
-import { useNetworkStats, usePNodes } from '@/hooks/usePNodes';
-import { SparklineCard } from '@/components/sparkline-card';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FullPageError } from '@/components/ui/error-display';
-import { Database, Activity, TrendingUp, Zap, ArrowRight, Command, Star, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
-import { formatBytes } from '@/lib/format';
+import { useNetworkStats, usePNodes } from '@/hooks/usePNodes'
+import { SparklineCard } from '@/components/sparkline-card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { FullPageError } from '@/components/ui/error-display'
+import { AlertDashboard } from '@/components/alerts/alert-dashboard'
+import { Database, Activity, TrendingUp, Zap, ArrowRight, Command, Star, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { formatBytes } from '@/lib/format'
 
 export default function HomePage() {
-  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useNetworkStats();
-  const { data: pnodes, isLoading: pnodesLoading, error: pnodesError, refetch: refetchPNodes } = usePNodes();
+  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useNetworkStats()
+  const { data: pnodes, isLoading: pnodesLoading, error: pnodesError, refetch: refetchPNodes } = usePNodes()
 
-  const error = statsError || pnodesError;
-  const isLoading = statsLoading || pnodesLoading;
+  const error = statsError || pnodesError
+  const isLoading = statsLoading || pnodesLoading
 
   // Generate sparkline data from actual values
   const generateSparklineData = (currentValue: number, volatility: number = 0.1) => {
-    const data = [];
-    let value = currentValue * 0.8;
+    const data = []
+    let value = currentValue * 0.8
     for (let i = 0; i < 20; i++) {
-      value = value + (Math.random() - 0.5) * currentValue * volatility + currentValue * 0.01;
-      data.push(Math.max(0, value));
+      value = value + (Math.random() - 0.5) * currentValue * volatility + currentValue * 0.01
+      data.push(Math.max(0, value))
     }
-    return data;
-  };
+    return data
+  }
 
   const handleRetry = () => {
-    refetchStats();
-    refetchPNodes();
-  };
+    refetchStats()
+    refetchPNodes()
+  }
 
   // Show error state
   if (error && !isLoading) {
@@ -68,7 +69,7 @@ export default function HomePage() {
           <FullPageError error={error} onRetry={handleRetry} />
         </div>
       </div>
-    );
+    )
   }
 
   // Show loading state
@@ -93,16 +94,16 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  const totalNodes = stats?.totalPNodes || 0;
-  const onlineNodes = stats?.onlinePNodes || 0;
-  const totalCapacity = stats?.totalCapacity || 0;
-  const healthScore = stats?.healthScore || 0;
+  const totalNodes = stats?.totalPNodes || 0
+  const onlineNodes = stats?.onlinePNodes || 0
+  const totalCapacity = stats?.totalCapacity || 0
+  const healthScore = stats?.healthScore || 0
 
   // Top performing pNodes
-  const topPerformers = pnodes ? [...pnodes].sort((a, b) => b.performanceScore - a.performanceScore).slice(0, 3) : [];
+  const topPerformers = pnodes ? [...pnodes].sort((a, b) => b.performanceScore - a.performanceScore).slice(0, 3) : []
 
   return (
     <div className="min-h-screen">
@@ -234,9 +235,7 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                          {pnode.performanceScore}
-                        </p>
+                        <p className="text-lg font-bold text-green-600 dark:text-green-400">{pnode.performanceScore}</p>
                         <p className="text-xs text-muted-foreground">{formatBytes(pnode.storage.capacityBytes)}</p>
                       </div>
                     </Link>
@@ -264,7 +263,9 @@ export default function HomePage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Online Nodes</span>
-                  <span className="text-sm font-medium">{onlineNodes} / {totalNodes}</span>
+                  <span className="text-sm font-medium">
+                    {onlineNodes} / {totalNodes}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Health Score</span>
@@ -282,6 +283,11 @@ export default function HomePage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Alerts Overview */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <AlertDashboard compact />
       </div>
 
       {/* Quick Actions */}
@@ -316,14 +322,14 @@ export default function HomePage() {
               href={item.href}
               className="group relative overflow-hidden rounded-lg border bg-card p-6 hover:shadow-2xl transition-all"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity`}
+              />
               <div className="relative">
                 <div className={`inline-flex p-3 rounded-lg bg-gradient-to-br ${item.gradient} text-white mb-4`}>
                   <item.icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
-                  {item.title}
-                </h3>
+                <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">{item.title}</h3>
                 <p className="text-sm text-muted-foreground">{item.description}</p>
                 <ArrowRight className="h-5 w-5 mt-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
@@ -332,5 +338,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

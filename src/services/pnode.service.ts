@@ -478,14 +478,30 @@ export class PNodeService {
    * Calculate performance score based on various metrics
    */
   calculatePerformanceScore(metrics: PerformanceMetrics, storage: StorageMetrics): number {
-    // Score components
-    const uptimeScore = metrics.uptime * 0.3 // 30%
-    const storageScore = Math.min((storage.capacityBytes / 1024 ** 4) * 20, 20) // 20%, max at 1TB
-    const responseScore = Math.max((100 - metrics.averageLatency) / 100, 0) * 25 // 25%
-    const reliabilityScore = metrics.successRate * 0.15 // 15%
-    const versionScore = 10 // 10%
+    // Score components with proper weighting as per PRD
+    const uptimeScore = metrics.uptime * 0.3 // 30% - Uptime percentage
+    const storageScore = Math.min((storage.capacityBytes / 1024 ** 4) * 20, 20) // 20% - Storage capacity (max at 1TB)
+    const responseScore = Math.max((100 - metrics.averageLatency) / 100, 0) * 25 // 25% - Response time (lower latency = higher score)
+    const reliabilityScore = metrics.successRate * 0.15 // 15% - Success rate
+    const versionScore = 10 // 10% - Running latest version (simplified)
 
-    return Math.round(uptimeScore + storageScore + responseScore + reliabilityScore + versionScore)
+    const totalScore = uptimeScore + storageScore + responseScore + reliabilityScore + versionScore
+
+    // Optional debug logging (uncomment for debugging)
+    // console.log('Performance Score Debug:', {
+    //   uptime: metrics.uptime,
+    //   uptimeScore,
+    //   storageCapacityTB: storage.capacityBytes / (1024 ** 4),
+    //   storageScore,
+    //   latency: metrics.averageLatency,
+    //   responseScore,
+    //   successRate: metrics.successRate,
+    //   reliabilityScore,
+    //   versionScore,
+    //   totalScore: Math.round(totalScore)
+    // })
+
+    return Math.round(Math.max(0, Math.min(100, totalScore))) // Clamp between 0-100
   }
 
   /**

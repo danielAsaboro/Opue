@@ -6,3 +6,5 @@ export DATABASE_URL="postgresql://user@localhost:5432/opue?schema=public"
 npx prisma studio
 
 
+
+
