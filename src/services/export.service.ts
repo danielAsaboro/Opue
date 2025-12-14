@@ -1,12 +1,23 @@
 import type { PNode } from '@/types/pnode'
-import { formatBytes, formatPercentage } from '@/lib/format'
+import { formatPercentage } from '@/lib/format'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
+
+interface AutoTableOptions {
+  startY?: number
+  head?: string[][]
+  body?: (string | number)[][]
+  theme?: 'striped' | 'grid' | 'plain'
+  headStyles?: { fillColor?: number[] }
+  styles?: { fontSize?: number }
+  columnStyles?: Record<number, { cellWidth?: number }>
+}
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable: (options: any) => jsPDF
+    autoTable: (options: AutoTableOptions) => jsPDF
+    previousAutoTable: { finalY: number }
   }
 }
 
@@ -26,9 +37,19 @@ export interface ExportOptions {
   }
 }
 
+interface NetworkStats {
+  totalPNodes: number
+  onlinePNodes: number
+  offlinePNodes: number
+  totalStorage: number
+  averagePerformance: number
+  averageUptime: number
+  locations: number
+}
+
 export interface ExportData {
   pnodes: PNode[]
-  networkStats: any
+  networkStats: NetworkStats
   exportMetadata: {
     timestamp: Date
     totalRecords: number
@@ -263,7 +284,7 @@ export class ExportService {
   /**
    * Export network analytics report
    */
-  async exportNetworkReport(networkData: any, options: ExportOptions): Promise<void> {
+  async exportNetworkReport(networkData: Record<string, unknown>, options: ExportOptions): Promise<void> {
     const reportData = {
       networkAnalytics: networkData,
       exportMetadata: {
@@ -286,7 +307,7 @@ export class ExportService {
   /**
    * Create detailed network PDF report
    */
-  private async createNetworkPDFReport(data: any): Promise<void> {
+  private async createNetworkPDFReport(_data: Record<string, unknown>): Promise<void> {
     const doc = new jsPDF()
 
     doc.setFontSize(20)

@@ -1,14 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getWebSocketService } from '@/services/websocket.service'
+import { useEffect, useState, useCallback } from 'react'
+import { getWebSocketService, PNodeUpdateEvent } from '@/services/websocket.service'
 import { Badge } from '@/components/ui/badge'
 import { Wifi, WifiOff, Loader2 } from 'lucide-react'
 
 export function ConnectionStatus() {
   const [isConnected, setIsConnected] = useState(true) // Default to connected (simulated live mode)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [connectionMode, setConnectionMode] = useState<'websocket' | 'simulated'>('simulated')
+  const [, setConnectionMode] = useState<'websocket' | 'simulated'>('simulated')
+
+  const handleConnect = useCallback((event: PNodeUpdateEvent) => {
+    setIsConnected(true)
+    setIsConnecting(false)
+    const mode = event.data.mode as 'websocket' | 'simulated' | undefined
+    if (mode) {
+      setConnectionMode(mode)
+    }
+  }, [])
+
+  const handleDisconnect = useCallback(() => {
+    setIsConnected(false)
+    setIsConnecting(false)
+  }, [])
 
   useEffect(() => {
     const wsService = getWebSocketService()
@@ -24,20 +38,6 @@ export function ConnectionStatus() {
     // Set up periodic checks
     const interval = setInterval(checkConnection, 5000) // Check every 5 seconds
 
-    // Listen for connection events
-    const handleConnect = (event: any) => {
-      setIsConnected(true)
-      setIsConnecting(false)
-      if (event.data.mode) {
-        setConnectionMode(event.data.mode)
-      }
-    }
-
-    const handleDisconnect = () => {
-      setIsConnected(false)
-      setIsConnecting(false)
-    }
-
     wsService.addEventListener('network_stats_update', handleConnect)
     wsService.addEventListener('network_stats_update', handleDisconnect)
 
@@ -47,7 +47,7 @@ export function ConnectionStatus() {
         setIsConnecting(true)
         try {
           await wsService.connect()
-        } catch (error) {
+        } catch {
           console.warn('Real-time connection setup completed (using enhanced polling)')
           setIsConnecting(false)
           setIsConnected(true) // We're always "connected" via polling
@@ -62,7 +62,7 @@ export function ConnectionStatus() {
       wsService.removeEventListener('network_stats_update', handleConnect)
       wsService.removeEventListener('network_stats_update', handleDisconnect)
     }
-  }, [])
+  }, [handleConnect, handleDisconnect])
 
   if (isConnecting) {
     return (

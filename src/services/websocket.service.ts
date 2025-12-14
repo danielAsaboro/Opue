@@ -5,7 +5,7 @@ export interface WebSocketMessage {
   jsonrpc: string
   method: string
   params: {
-    result: any
+    result: unknown
     subscription: number
   }
   id?: number
@@ -13,7 +13,7 @@ export interface WebSocketMessage {
 
 export interface PNodeUpdateEvent {
   type: 'pnode_update' | 'pnode_added' | 'pnode_removed' | 'network_stats_update'
-  data: any
+  data: Record<string, unknown>
   timestamp: number
 }
 
@@ -22,7 +22,7 @@ export class WebSocketService {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 3 // Reduced attempts
   private reconnectDelay = 2000
-  private subscriptions: Map<number, (data: any) => void> = new Map()
+  private subscriptions: Map<number, (data: unknown) => void> = new Map()
   private eventListeners: Map<string, ((event: PNodeUpdateEvent) => void)[]> = new Map()
   private isConnected = false
   private heartbeatInterval: NodeJS.Timeout | null = null
@@ -144,7 +144,7 @@ export class WebSocketService {
   /**
    * Subscribe to pNode gossip updates
    */
-  async subscribeToPNodeUpdates(callback: (pnodes: PNode[]) => void): Promise<number> {
+  async subscribeToPNodeUpdates(callback: (pnodes: unknown) => void): Promise<number> {
     if (!this.isConnected || !this.ws) {
       throw new Error('WebSocket not connected')
     }
@@ -169,7 +169,7 @@ export class WebSocketService {
   /**
    * Subscribe to network stats updates
    */
-  async subscribeToNetworkStats(callback: (stats: any) => void): Promise<number> {
+  async subscribeToNetworkStats(callback: (stats: unknown) => void): Promise<number> {
     if (!this.isConnected || !this.ws) {
       throw new Error('WebSocket not connected')
     }
@@ -262,13 +262,13 @@ export class WebSocketService {
     if (message.method === 'gossipNotification') {
       this.emitEvent({
         type: 'pnode_update',
-        data: message.params.result,
+        data: message.params.result as Record<string, unknown>,
         timestamp: Date.now(),
       })
     } else if (message.method === 'networkStatsNotification') {
       this.emitEvent({
         type: 'network_stats_update',
-        data: message.params.result,
+        data: message.params.result as Record<string, unknown>,
         timestamp: Date.now(),
       })
     }

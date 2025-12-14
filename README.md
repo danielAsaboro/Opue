@@ -28,6 +28,7 @@ Real-time analytics and insights for the Xandeum storage network.
 
 - Node.js 20 or higher
 - npm or pnpm
+- PostgreSQL (for analytics features)
 
 ### Installation
 
@@ -47,14 +48,27 @@ npm install
 NEXT_PUBLIC_XANDEUM_RPC_URL=https://apis.devnet.xandeum.com
 NEXT_PUBLIC_XANDEUM_WS_URL=wss://apis.devnet.xandeum.com
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+DATABASE_URL=postgresql://user:password@localhost:5432/xandeum_analytics
 \`\`\`
 
-4. Run the development server:
+4. Set up the database (optional, for analytics features):
+\`\`\`bash
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate deploy
+
+# (Optional) Seed database or open Prisma Studio
+npx prisma studio
+\`\`\`
+
+5. Run the development server:
 \`\`\`bash
 npm run dev
 \`\`\`
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📁 Project Structure
 
@@ -192,6 +206,9 @@ To add new visualizations:
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
+- `npm test` - Run unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
 
 ### Error Handling
 The application displays clear error messages when the pRPC API is unavailable, with:

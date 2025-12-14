@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alertService } from '@/services/alert.service';
+import { getAlertService } from '@/services/alert.service';
 
 /**
  * GET /api/alerts/rules
@@ -7,10 +7,16 @@ import { alertService } from '@/services/alert.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const alertService = getAlertService();
         const searchParams = request.nextUrl.searchParams;
         const includeDisabled = searchParams.get('includeDisabled') === 'true';
 
-        const rules = await alertService.getRules(includeDisabled);
+        let rules = alertService.getRules();
+
+        // Filter out disabled rules if not requested
+        if (!includeDisabled) {
+            rules = rules.filter((rule) => rule.enabled);
+        }
 
         return NextResponse.json({
             success: true,
@@ -26,52 +32,34 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/alerts/rules
- * Create a new alert rule
+ * PATCH /api/alerts/rules
+ * Update an alert rule (enable/disable)
  */
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
     try {
+        const alertService = getAlertService();
         const body = await request.json();
 
-        // Validate required fields
-        const { name, metric, operator, threshold } = body;
-        if (!name || !metric || !operator || threshold === undefined) {
+        const { ruleId, enabled } = body;
+        if (!ruleId) {
             return NextResponse.json(
-                { success: false, error: 'Missing required fields: name, metric, operator, threshold' },
+                { success: false, error: 'Missing required field: ruleId' },
                 { status: 400 }
             );
         }
 
-        // Validate operator
-        const validOperators = ['<', '>', '==', '<=', '>='];
-        if (!validOperators.includes(operator)) {
-            return NextResponse.json(
-                { success: false, error: `Invalid operator. Must be one of: ${validOperators.join(', ')}` },
-                { status: 400 }
-            );
+        if (typeof enabled === 'boolean') {
+            alertService.toggleRule(ruleId, enabled);
         }
-
-        const rule = await alertService.createRule({
-            name,
-            description: body.description,
-            metric,
-            operator,
-            threshold: parseFloat(threshold),
-            scope: body.scope || 'NETWORK',
-            pnodeFilter: body.pnodeFilter,
-            notifyEmail: body.notifyEmail,
-            notifyWebhook: body.notifyWebhook,
-            cooldownMinutes: body.cooldownMinutes ? parseInt(body.cooldownMinutes) : 15,
-        });
 
         return NextResponse.json({
             success: true,
-            data: rule,
+            message: `Rule ${ruleId} updated`,
         });
     } catch (error) {
-        console.error('[API] Alert rule creation error:', error);
+        console.error('[API] Alert rule update error:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to create alert rule' },
+            { success: false, error: 'Failed to update alert rule' },
             { status: 500 }
         );
     }

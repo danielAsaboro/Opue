@@ -8,6 +8,7 @@ import { ThemeSelect } from '@/components/theme-select'
 import { ClusterUiSelect } from './cluster/cluster-ui'
 import { WalletButton } from '@/components/solana/solana-provider'
 import { ConnectionStatus } from '@/components/connection-status'
+import { GlobalSearch } from '@/components/global-search'
 
 export function AppHeader({ links = [] }: { links: { label: string; path: string }[] }) {
   const pathname = usePathname()
@@ -45,6 +46,7 @@ export function AppHeader({ links = [] }: { links: { label: string; path: string
         </Button>
 
         <div className="hidden md:flex items-center gap-4">
+          <GlobalSearch />
           <ConnectionStatus />
           <WalletButton />
           <ClusterUiSelect />

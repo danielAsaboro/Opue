@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService } from '@/services/analytics.service';
+import { getAnalyticsService } from '@/services/analytics.service';
 
 /**
  * GET /api/analytics/history
@@ -7,6 +7,7 @@ import { analyticsService } from '@/services/analytics.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const analyticsService = getAnalyticsService();
         const searchParams = request.nextUrl.searchParams;
         const days = parseInt(searchParams.get('days') || '7');
         const resolution = (searchParams.get('resolution') || 'hourly') as 'hourly' | 'daily';

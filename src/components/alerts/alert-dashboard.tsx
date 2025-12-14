@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AlertTriangle, CheckCircle, Clock, Bell, Settings, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle, Clock, Bell, Settings } from 'lucide-react'
 import type { Alert, AlertStats } from '@/types/alerts'
 import { getAlertService } from '@/services/alert.service'
 import { formatDistanceToNow } from 'date-fns'
@@ -24,11 +24,15 @@ export function AlertDashboard({ compact = false, className = '' }: AlertDashboa
 
   useEffect(() => {
     // Initial load
-    updateAlerts()
+    const doUpdate = () => {
+      setAlerts(alertService.getAlerts())
+      setStats(alertService.getAlertStats())
+    }
+    doUpdate()
 
     // Set up real-time updates
-    const handleNewAlert = (alert: Alert) => {
-      updateAlerts()
+    const handleNewAlert = () => {
+      doUpdate()
     }
 
     alertService.addAlertListener(handleNewAlert)
@@ -36,7 +40,7 @@ export function AlertDashboard({ compact = false, className = '' }: AlertDashboa
     return () => {
       alertService.removeAlertListener(handleNewAlert)
     }
-  }, [])
+  }, [alertService])
 
   const updateAlerts = () => {
     setAlerts(alertService.getAlerts())
@@ -96,7 +100,7 @@ export function AlertDashboard({ compact = false, className = '' }: AlertDashboa
               Alerts
             </CardTitle>
             {stats && stats.active > 0 && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="danger" className="text-xs">
                 {stats.active}
               </Badge>
             )}
@@ -209,7 +213,7 @@ export function AlertDashboard({ compact = false, className = '' }: AlertDashboa
               <TabsTrigger value="active" className="flex items-center gap-2">
                 Active Alerts
                 {activeAlerts.length > 0 && (
-                  <Badge variant="destructive" className="text-xs ml-1">
+                  <Badge variant="danger" className="text-xs ml-1">
                     {activeAlerts.length}
                   </Badge>
                 )}

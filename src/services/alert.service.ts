@@ -1,7 +1,17 @@
-import type { Alert, AlertRule, AlertStats, AlertType, AlertSeverity } from '@/types/alerts'
+import type { Alert, AlertRule, AlertStats, AlertType } from '@/types/alerts'
+import type { AlertCondition } from '@/types/alerts'
 import { DEFAULT_ALERT_RULES } from '@/types/alerts'
 import type { PNode } from '@/types/pnode'
 import { getWebSocketService } from './websocket.service'
+
+interface NetworkStats {
+  totalPNodes: number
+  totalStorage: number
+  decentralization: number
+  avgPerformance: number
+}
+
+type ConditionValue = string | number | boolean
 
 export class AlertService {
   private rules: Map<string, AlertRule> = new Map()
@@ -32,8 +42,9 @@ export class AlertService {
    */
   private setupWebSocketListeners(): void {
     this.wsService.addEventListener('pnode_update', (event) => {
-      if (event.data.pnodes) {
-        this.checkAlerts(event.data.pnodes)
+      const pnodes = event.data.pnodes as PNode[] | undefined
+      if (pnodes) {
+        this.checkAlerts(pnodes)
       }
     })
   }
@@ -61,7 +72,7 @@ export class AlertService {
   /**
    * Evaluate a single rule against current data
    */
-  private evaluateRule(rule: AlertRule, pnodes: PNode[], networkStats: any): Partial<Alert>[] {
+  private evaluateRule(rule: AlertRule, pnodes: PNode[], networkStats: NetworkStats): Partial<Alert>[] {
     const alerts: Partial<Alert>[] = []
 
     switch (rule.type) {
@@ -166,9 +177,9 @@ export class AlertService {
   /**
    * Check if conditions are met for a pNode
    */
-  private checkConditions(conditions: any[], data: any): boolean {
+  private checkConditions(conditions: AlertCondition[], data: PNode | Record<string, ConditionValue>): boolean {
     return conditions.every((condition) => {
-      const value = this.getNestedValue(data, condition.field)
+      const value = this.getNestedValue(data as Record<string, ConditionValue>, condition.field)
       return this.evaluateCondition(value, condition.operator, condition.value)
     })
   }
@@ -176,9 +187,9 @@ export class AlertService {
   /**
    * Check network-level conditions
    */
-  private checkNetworkConditions(conditions: any[], networkStats: any): boolean {
+  private checkNetworkConditions(conditions: AlertCondition[], networkStats: NetworkStats): boolean {
     return conditions.every((condition) => {
-      const value = networkStats[condition.field]
+      const value = networkStats[condition.field as keyof NetworkStats]
       return this.evaluateCondition(value, condition.operator, condition.value)
     })
   }
@@ -186,7 +197,8 @@ export class AlertService {
   /**
    * Evaluate a single condition
    */
-  private evaluateCondition(actualValue: any, operator: string, expectedValue: any): boolean {
+  private evaluateCondition(actualValue: ConditionValue | undefined, operator: string, expectedValue: ConditionValue): boolean {
+    if (actualValue === undefined) return false
     switch (operator) {
       case 'gt':
         return actualValue > expectedValue
@@ -208,14 +220,22 @@ export class AlertService {
   /**
    * Get nested object value by path
    */
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj)
+  private getNestedValue(obj: Record<string, ConditionValue>, path: string): ConditionValue | undefined {
+    const keys = path.split('.')
+    let current: Record<string, ConditionValue> | ConditionValue | undefined = obj
+    for (const key of keys) {
+      if (current === undefined || current === null || typeof current !== 'object') {
+        return undefined
+      }
+      current = (current as Record<string, ConditionValue>)[key]
+    }
+    return current as ConditionValue | undefined
   }
 
   /**
    * Calculate network-level statistics
    */
-  private calculateNetworkStats(pnodes: PNode[]): any {
+  private calculateNetworkStats(pnodes: PNode[]): NetworkStats {
     const totalStorage = pnodes.reduce((sum, p) => sum + p.storage.capacityBytes, 0)
     const locations = new Set(pnodes.map((p) => p.location).filter(Boolean))
 

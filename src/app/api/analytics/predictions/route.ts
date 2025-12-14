@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService } from '@/services/analytics.service';
+import { getAnalyticsService } from '@/services/analytics.service';
 
 /**
  * GET /api/analytics/predictions
@@ -7,24 +7,11 @@ import { analyticsService } from '@/services/analytics.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const analyticsService = getAnalyticsService();
         const searchParams = request.nextUrl.searchParams;
         const pnodePubkey = searchParams.get('pnode') || undefined;
 
         const predictions = await analyticsService.getPredictions(pnodePubkey);
-
-        if (!predictions) {
-            return NextResponse.json(
-                { success: false, error: 'pNode not found' },
-                { status: 404 }
-            );
-        }
-
-        if ('error' in predictions) {
-            return NextResponse.json(
-                { success: false, error: predictions.error },
-                { status: 400 }
-            );
-        }
 
         return NextResponse.json({
             success: true,

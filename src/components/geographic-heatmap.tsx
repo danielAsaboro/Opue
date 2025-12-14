@@ -1,22 +1,20 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Circle, Tooltip, useMap } from 'react-leaflet'
+import { useEffect, useState } from 'react'
+import { MapContainer, TileLayer, Circle, Tooltip, useMap } from 'react-leaflet'
 import { LatLngTuple } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { PNode } from '@/types/pnode'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { Map, Layers, Zap, Database, TrendingUp, Globe } from 'lucide-react'
+import { Map, Zap, Database, TrendingUp, Globe } from 'lucide-react'
 import { formatBytes } from '@/lib/format'
 import Link from 'next/link'
 
 // Fix for default markers in react-leaflet
 import L from 'leaflet'
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => string })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -30,31 +28,13 @@ interface GeographicHeatmapProps {
 
 type ViewMode = 'storage' | 'performance' | 'decentralization' | 'uptime'
 
-interface MapControllerProps {
-  viewMode: ViewMode
-  onViewModeChange: (mode: ViewMode) => void
-  minCapacity: number
-  maxCapacity: number
-  capacityFilter: number[]
-  onCapacityFilterChange: (value: number[]) => void
-}
-
 // Component to control map from outside
-function MapController({
-  viewMode,
-  onViewModeChange,
-  minCapacity,
-  maxCapacity,
-  capacityFilter,
-  onCapacityFilterChange,
-}: MapControllerProps) {
+function MapController() {
   const map = useMap()
 
   // Fit map to show all markers
   useEffect(() => {
-    const bounds = L.latLngBounds([])
-    // This would be populated with actual marker coordinates
-    // For now, center on a reasonable default
+    // Center on a reasonable default for global view
     map.setView([20, 0], 2)
   }, [map])
 
@@ -229,14 +209,7 @@ export function GeographicHeatmap({ pnodes, className = '' }: GeographicHeatmapP
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
 
-              <MapController
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                minCapacity={0}
-                maxCapacity={100}
-                capacityFilter={capacityFilter}
-                onCapacityFilterChange={setCapacityFilter}
-              />
+              <MapController />
 
               {filteredPNodes.map((pnode) => {
                 const coords = getCoordinates(pnode)
@@ -338,7 +311,8 @@ function calculateDecentralizationScore(pnodes: PNode[]): number {
   if (pnodes.length === 0) return 0
 
   const locations = pnodes.map((p) => p.location).filter(Boolean)
-  const uniqueLocations = new Set(locations)
+  // Used for Gini coefficient calculation below
+  void new Set(locations)
 
   // Calculate Gini coefficient for storage distribution across locations
   const locationStorage: Record<string, number> = {}

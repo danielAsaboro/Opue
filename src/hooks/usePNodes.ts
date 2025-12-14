@@ -41,8 +41,9 @@ export function usePNodes(): UseQueryResult<PNode[], Error> {
 
         // Subscribe to pNode updates
         if (mounted) {
-          wsSubscriptionRef.current = await wsService.subscribeToPNodeUpdates((updatedPNodes: PNode[]) => {
-            if (mounted) {
+          wsSubscriptionRef.current = await wsService.subscribeToPNodeUpdates((data: unknown) => {
+            if (mounted && Array.isArray(data)) {
+              const updatedPNodes = data as PNode[]
               console.log('[WebSocket] Received pNode updates:', updatedPNodes.length, 'pNodes')
               // Update the cache with fresh data
               queryClient.setQueryData(['pnodes'], updatedPNodes)
@@ -108,7 +109,7 @@ export function useNetworkStats(): UseQueryResult<NetworkStats, Error> {
         }
 
         if (mounted) {
-          wsSubscriptionRef.current = await wsService.subscribeToNetworkStats((stats: NetworkStats) => {
+          wsSubscriptionRef.current = await wsService.subscribeToNetworkStats((stats: unknown) => {
             if (mounted) {
               console.log('[WebSocket] Received network stats update')
               queryClient.setQueryData(['network-stats'], stats)

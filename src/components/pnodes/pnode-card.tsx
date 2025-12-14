@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { PNode } from '@/types/pnode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatBytes, formatPercentage, truncatePublicKey } from '@/lib/format';
-import { Star, Database, Activity } from 'lucide-react';
+import { Star, Database, Activity, Bell, BellOff } from 'lucide-react';
+import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/lib/watchlist';
 import Link from 'next/link';
 
 interface PNodeCardProps {
@@ -15,6 +17,22 @@ interface PNodeCardProps {
 }
 
 export function PNodeCard({ pnode, isFavorite, onToggleFavorite }: PNodeCardProps) {
+    const [isWatched, setIsWatched] = useState(false);
+
+    useEffect(() => {
+        setIsWatched(isInWatchlist(pnode.id));
+    }, [pnode.id]);
+
+    const handleToggleWatchlist = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (isWatched) {
+            removeFromWatchlist(pnode.id);
+        } else {
+            addToWatchlist(pnode.id);
+        }
+        setIsWatched(!isWatched);
+    };
+
     const getStatusVariant = (status: string): 'success' | 'danger' | 'warning' => {
         switch (status) {
             case 'online':
@@ -41,19 +59,35 @@ export function PNodeCard({ pnode, isFavorite, onToggleFavorite }: PNodeCardProp
                             {truncatePublicKey(pnode.id, 6, 6)}
                         </CardTitle>
                     </Link>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onToggleFavorite(pnode.id);
-                        }}
-                    >
-                        <Star
-                            className={`h-4 w-4 ${isFavorite ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'}`}
-                        />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={handleToggleWatchlist}
+                            title={isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                        >
+                            {isWatched ? (
+                                <Bell className="h-4 w-4 fill-primary text-primary" />
+                            ) : (
+                                <BellOff className="h-4 w-4 text-muted-foreground" />
+                            )}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onToggleFavorite(pnode.id);
+                            }}
+                            title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                        >
+                            <Star
+                                className={`h-4 w-4 ${isFavorite ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'}`}
+                            />
+                        </Button>
+                    </div>
                 </div>
                 <div className="flex items-center space-x-2 mt-2">
                     <Badge variant={getStatusVariant(pnode.status)}>{pnode.status}</Badge>

@@ -10,21 +10,12 @@ import {
   BarChart2,
   Map,
   TrendingUp,
-  Settings,
   Moon,
   Sun,
   Bell,
-  AlertTriangle,
-  Zap,
-  Star,
-  Filter,
-  SortAsc,
   Download,
-  Users,
-  Activity,
   Target,
   Clock,
-  Globe,
   ChevronRight,
   Hash,
 } from 'lucide-react'
@@ -36,7 +27,7 @@ interface CommandItem {
   id: string
   title: string
   description?: string
-  icon: React.ComponentType<any>
+  icon: React.ComponentType<{ className?: string }>
   shortcut?: string
   action: () => void
   category: string

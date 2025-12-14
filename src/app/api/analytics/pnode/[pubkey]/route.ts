@@ -1,34 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService } from '@/services/analytics.service';
+import { getAnalyticsService } from '@/services/analytics.service';
 
 /**
  * GET /api/analytics/pnode/[pubkey]
- * Get detailed history for a specific pNode
+ * Get predictions for a specific pNode
  */
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ pubkey: string }> }
 ) {
     try {
+        const analyticsService = getAnalyticsService();
         const { pubkey } = await params;
-        const searchParams = request.nextUrl.searchParams;
-        const days = parseInt(searchParams.get('days') || '7');
 
-        const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-        const history = await analyticsService.getPNodeHistory(pubkey, startDate);
+        // Use getPredictions with the pNode pubkey
+        const predictions = await analyticsService.getPredictions(pubkey);
 
         return NextResponse.json({
             success: true,
-            data: history,
+            data: predictions,
             meta: {
-                days,
-                snapshotCount: history.snapshots.length,
+                pubkey,
+                dataPoints: predictions.dataPoints,
             },
         });
     } catch (error) {
-        console.error('[API] pNode history error:', error);
+        console.error('[API] pNode analytics error:', error);
 
-        const message = error instanceof Error ? error.message : 'Failed to fetch pNode history';
+        const message = error instanceof Error ? error.message : 'Failed to fetch pNode analytics';
         const status = message.includes('not found') ? 404 : 500;
 
         return NextResponse.json(

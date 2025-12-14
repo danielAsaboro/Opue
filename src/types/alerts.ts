@@ -39,7 +39,7 @@ export interface Alert {
   title: string
   message: string
   pnodeId?: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   timestamp: Date
   acknowledged: boolean
   acknowledgedAt?: Date

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService } from '@/services/analytics.service';
+import { getAnalyticsService } from '@/services/analytics.service';
 
 /**
  * GET /api/analytics/anomalies
@@ -7,18 +7,17 @@ import { analyticsService } from '@/services/analytics.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const analyticsService = getAnalyticsService();
         const searchParams = request.nextUrl.searchParams;
         const limit = parseInt(searchParams.get('limit') || '20');
-        const includeUnconfirmed = searchParams.get('includeUnconfirmed') !== 'false';
 
-        const anomalies = await analyticsService.getAnomalies(limit, includeUnconfirmed);
+        const anomalies = await analyticsService.getAnomalies(limit);
 
         return NextResponse.json({
             success: true,
             data: anomalies,
             meta: {
                 count: anomalies.length,
-                includeUnconfirmed,
             },
         });
     } catch (error) {

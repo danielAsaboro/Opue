@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService } from '@/services/analytics.service';
+import { getAnalyticsService } from '@/services/analytics.service';
 
 /**
  * GET /api/analytics/events
@@ -7,11 +7,12 @@ import { analyticsService } from '@/services/analytics.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const analyticsService = getAnalyticsService();
         const searchParams = request.nextUrl.searchParams;
         const limit = parseInt(searchParams.get('limit') || '50');
         const severity = searchParams.get('severity') || undefined;
 
-        const events = await analyticsService.getRecentEvents(limit, severity);
+        const events = await analyticsService.getNetworkEvents(limit, severity);
 
         return NextResponse.json({
             success: true,

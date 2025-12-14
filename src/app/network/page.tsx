@@ -1,12 +1,18 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useNetworkStats, usePNodes } from '@/hooks/usePNodes'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FullPageError } from '@/components/ui/error-display'
 import { formatBytes, formatPercentage } from '@/lib/format'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { GeographicHeatmap } from '@/components/geographic-heatmap'
+
+// Dynamic import for Leaflet-based component to avoid SSR issues
+const GeographicHeatmap = dynamic(() => import('@/components/geographic-heatmap').then(mod => mod.GeographicHeatmap), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[500px] w-full" />,
+})
 
 export default function NetworkPage() {
   const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useNetworkStats()

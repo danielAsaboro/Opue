@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alertService } from '@/services/alert.service';
+import { getAlertService } from '@/services/alert.service';
 
 /**
  * GET /api/alerts
@@ -7,16 +7,16 @@ import { alertService } from '@/services/alert.service';
  */
 export async function GET(request: NextRequest) {
     try {
+        const alertService = getAlertService();
         const searchParams = request.nextUrl.searchParams;
         const limit = parseInt(searchParams.get('limit') || '50');
         const unresolved = searchParams.get('unresolved') === 'true';
-        const severity = searchParams.get('severity') as 'INFO' | 'WARNING' | 'CRITICAL' | 'SUCCESS' | undefined;
 
-        const alerts = await alertService.getAlerts({
-            limit,
-            unresolved: unresolved || undefined,
-            severity,
-        });
+        // Get alerts - filter by unresolved if requested
+        let alerts = unresolved ? alertService.getActiveAlerts() : alertService.getAlerts();
+
+        // Apply limit
+        alerts = alerts.slice(0, limit);
 
         return NextResponse.json({
             success: true,
@@ -41,27 +41,19 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
     try {
+        const alertService = getAlertService();
         const body = await request.json();
-        const { alertId, ruleId } = body;
+        const { alertId } = body;
 
-        if (!alertId && !ruleId) {
+        if (!alertId) {
             return NextResponse.json(
-                { success: false, error: 'Must provide either alertId or ruleId' },
+                { success: false, error: 'Must provide alertId' },
                 { status: 400 }
             );
         }
 
-        if (alertId) {
-            await alertService.resolveAlert(alertId);
-            return NextResponse.json({ success: true, message: 'Alert resolved' });
-        }
-
-        if (ruleId) {
-            await alertService.resolveAllForRule(ruleId);
-            return NextResponse.json({ success: true, message: 'All alerts for rule resolved' });
-        }
-
-        return NextResponse.json({ success: true });
+        alertService.resolveAlert(alertId);
+        return NextResponse.json({ success: true, message: 'Alert resolved' });
     } catch (error) {
         console.error('[API] Alert resolve error:', error);
         return NextResponse.json(

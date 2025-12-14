@@ -17,7 +17,7 @@ export interface PredictiveInsight {
   confidence: number
   timeframe: string // e.g., "next 24h", "next week"
   impact: 'low' | 'medium' | 'high'
-  data: any
+  data: Record<string, unknown>
 }
 
 export interface NetworkHealthScore {
@@ -63,7 +63,7 @@ export interface AnalyticsMetrics {
 }
 
 export class AdvancedAnalyticsService {
-  private historicalData: Map<string, any[]> = new Map()
+  private historicalData: Map<string, unknown[]> = new Map()
   private anomalyThresholds = {
     performanceDrop: 0.2, // 20% drop
     uptimeDrop: 0.1, // 10% drop
@@ -74,7 +74,7 @@ export class AdvancedAnalyticsService {
   /**
    * Analyze current pNode data for anomalies
    */
-  detectAnomalies(pnodes: PNode[], historicalData?: any): AnomalyDetection[] {
+  detectAnomalies(pnodes: PNode[], _historicalData?: unknown): AnomalyDetection[] {
     const anomalies: AnomalyDetection[] = []
 
     // Performance anomalies
@@ -102,7 +102,7 @@ export class AdvancedAnalyticsService {
   /**
    * Generate predictive insights
    */
-  generatePredictions(pnodes: PNode[], historicalData?: any): PredictiveInsight[] {
+  generatePredictions(pnodes: PNode[], historicalData?: unknown): PredictiveInsight[] {
     const predictions: PredictiveInsight[] = []
 
     // Growth predictions
@@ -191,7 +191,7 @@ export class AdvancedAnalyticsService {
 
         anomalies.push({
           type: 'performance',
-          severity: severity as any,
+          severity: severity as AnomalyDetection['severity'],
           description: `${pnode.id.slice(0, 8)}... performance ${deviation > 0 ? 'significantly above' : 'below'} network average`,
           affectedPNodes: [pnode.id],
           timestamp: new Date(),
@@ -275,7 +275,7 @@ export class AdvancedAnalyticsService {
     return anomalies
   }
 
-  private predictNetworkGrowth(pnodes: PNode[], historicalData?: any): PredictiveInsight[] {
+  private predictNetworkGrowth(pnodes: PNode[], _historicalData?: unknown): PredictiveInsight[] {
     // Simplified prediction based on current trends
     const currentCount = pnodes.length
     const growthRate = 0.05 // 5% weekly growth assumption
@@ -417,7 +417,7 @@ export class AdvancedAnalyticsService {
     }
   }
 
-  private generateHealthRecommendations(scores: any): string[] {
+  private generateHealthRecommendations(scores: NetworkHealthScore['components']): string[] {
     const recommendations: string[] = []
 
     if (scores.decentralization < 60) {
@@ -439,7 +439,7 @@ export class AdvancedAnalyticsService {
     return recommendations
   }
 
-  private calculateNetworkGrowth(pnodes: PNode[]): any {
+  private calculateNetworkGrowth(pnodes: PNode[]): AnalyticsMetrics['networkGrowth'] {
     // Generate mock historical data for demo
     const baseCount = pnodes.length * 0.8
     const pnodeCount = Array.from({ length: 30 }, (_, i) =>
@@ -456,7 +456,7 @@ export class AdvancedAnalyticsService {
     return { pnodeCount, storageCapacity, performance, timestamps }
   }
 
-  private calculateDecentralizationMetrics(pnodes: PNode[]): any {
+  private calculateDecentralizationMetrics(pnodes: PNode[]): AnalyticsMetrics['decentralization'] {
     const locations = new Map<string, number>()
     pnodes.forEach((pnode) => {
       const location = pnode.location || 'Unknown'
@@ -480,7 +480,7 @@ export class AdvancedAnalyticsService {
     }
   }
 
-  private calculateReliabilityMetrics(pnodes: PNode[]): any {
+  private calculateReliabilityMetrics(pnodes: PNode[]): AnalyticsMetrics['reliability'] {
     const onlineCount = pnodes.filter((p) => p.status === 'online').length
     const avgUptime = pnodes.reduce((sum, p) => sum + p.performance.uptime, 0) / pnodes.length
 
@@ -492,7 +492,7 @@ export class AdvancedAnalyticsService {
     }
   }
 
-  private generatePredictionsData(pnodes: PNode[]): any {
+  private generatePredictionsData(pnodes: PNode[]): AnalyticsMetrics['predictions'] {
     const currentCount = pnodes.length
     const weeklyGrowthRate = 0.02 // 2% weekly growth
 
@@ -529,8 +529,6 @@ export class AdvancedAnalyticsService {
    * Get network history data for charts
    */
   async getNetworkHistory(startDate: Date, endDate: Date, resolution: 'hourly' | 'daily' = 'daily') {
-    const groupBy = resolution === 'hourly' ? 'hour' : 'day'
-
     // Query network snapshots with aggregation
     const snapshots = await prisma.networkSnapshot.findMany({
       where: {
@@ -545,7 +543,8 @@ export class AdvancedAnalyticsService {
     })
 
     // Group by time period and calculate averages
-    const groupedData = new Map<string, any[]>()
+    type NetworkSnapshotType = (typeof snapshots)[number]
+    const groupedData = new Map<string, NetworkSnapshotType[]>()
 
     snapshots.forEach((snapshot) => {
       const key =
@@ -692,7 +691,8 @@ export class AdvancedAnalyticsService {
    * Get top performing pNodes for leaderboard
    */
   async getTopPNodes(limit: number = 10, metric: 'performance' | 'uptime' | 'capacity' = 'performance') {
-    let orderBy: any
+    type OrderByType = { performanceScore: 'desc' } | { uptime: 'desc' } | { capacityBytes: 'desc' }
+    let orderBy: OrderByType
 
     switch (metric) {
       case 'performance':
@@ -731,14 +731,15 @@ export class AdvancedAnalyticsService {
    * Get recent network events
    */
   async getNetworkEvents(limit: number = 50, severity?: string) {
-    const where: any = {}
-    if (severity) {
-      where.severity = severity
-    }
+    const validSeverities = ['INFO', 'WARNING', 'CRITICAL', 'SUCCESS'] as const
+    type SeverityType = (typeof validSeverities)[number]
+    const severityFilter = severity && validSeverities.includes(severity as SeverityType)
+      ? { severity: severity as SeverityType }
+      : {}
 
     const events = await prisma.networkEvent.findMany({
       take: limit,
-      where,
+      where: severityFilter,
       orderBy: {
         timestamp: 'desc',
       },
