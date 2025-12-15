@@ -1,246 +1,356 @@
 # Xandeum pNode Analytics Platform
 
-Real-time analytics and insights for the Xandeum storage network.
+A comprehensive real-time analytics dashboard for monitoring and managing the Xandeum decentralized storage network.
 
-## 🌟 Features
+## Quick Start
 
-- **Network Dashboard**: Overview of network health, total storage, and pNode statistics
-- **pNode Explorer**: Detailed table of all storage provider nodes with filtering and sorting
-- **pNode Details**: Comprehensive metrics, performance history, and technical information
-- **Network Analytics**: Interactive charts showing network trends, distributions, and growth
-- **Real-time Updates**: Auto-refreshing data every 30 seconds using React Query
-- **Dark Mode**: Full dark mode support with system preference detection
-- **Responsive Design**: Mobile-first design that works on all devices
-
-## 🏗️ Tech Stack
-
-- **Frontend Framework**: Next.js 15 (App Router) with React 19
-- **Styling**: Tailwind CSS 4 with custom dark mode
-- **UI Components**: shadcn/ui (Radix UI primitives)
-- **State Management**: TanStack React Query + Jotai
-- **Charts**: Recharts for data visualization
-- **Blockchain**: @solana/web3.js + @xandeum/web3.js
-- **TypeScript**: Full type safety
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 20 or higher
-- npm or pnpm
-- PostgreSQL (for analytics features)
-
-### Installation
-
-1. Clone the repository:
-\`\`\`bash
-cd xandeum/opue
-\`\`\`
-
-2. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
-
-3. Set up environment variables:
-\`\`\`bash
-# Create .env.local file
-NEXT_PUBLIC_XANDEUM_RPC_URL=https://apis.devnet.xandeum.com
-NEXT_PUBLIC_XANDEUM_WS_URL=wss://apis.devnet.xandeum.com
-NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-DATABASE_URL=postgresql://user:password@localhost:5432/xandeum_analytics
-\`\`\`
-
-4. Set up the database (optional, for analytics features):
-\`\`\`bash
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate deploy
-
-# (Optional) Seed database or open Prisma Studio
-npx prisma studio
-\`\`\`
-
-5. Run the development server:
-\`\`\`bash
-npm run dev
-\`\`\`
-
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 📁 Project Structure
-
-\`\`\`
-src/
-├── app/                    # Next.js app router pages
-│   ├── layout.tsx          # Root layout with providers
-│   ├── page.tsx            # Homepage
-│   ├── pnodes/             # pNode pages
-│   │   ├── page.tsx        # pNode list
-│   │   └── [id]/page.tsx   # pNode detail
-│   └── network/page.tsx    # Network analytics
-├── components/             # React components
-│   ├── dashboard/          # Dashboard components
-│   ├── pnodes/             # pNode-specific components
-│   └── ui/                 # Reusable UI components
-├── hooks/                  # Custom React hooks
-│   └── usePNodes.ts        # Data fetching hooks
-├── lib/                    # Utility functions
-│   ├── format.ts           # Formatting helpers
-│   └── utils.ts            # General utilities
-├── services/               # API services
-│   └── pnode.service.ts    # pNode data service
-└── types/                  # TypeScript types
-    └── pnode.ts            # pNode data structures
-\`\`\`
-
-## 🎨 Key Components
-
-### Network Stats Cards
-Displays key metrics: total pNodes, storage capacity, network health, and average performance.
-
-### pNode Table
-Comprehensive table showing all pNodes with:
-- Status indicators (online/offline/delinquent)
-- Storage capacity and utilization
-- Performance scores
-- Uptime percentages
-- Location information
-
-### Network Analytics
-Interactive charts including:
-- Network growth over time
-- Status distribution (pie chart)
-- Software version distribution
-- Geographic distribution
-
-### pNode Detail Page
-Deep dive into individual pNodes:
-- Performance score history
-- Storage utilization trends
-- Technical specifications
-- Network information
-
-## 🔌 API Integration
-
-### Xandeum RPC Integration
-The application fetches real network data from the **Xandeum RPC API**. The integration is implemented in `src/services/pnode.service.ts` and `src/app/api/prpc/route.ts`.
-
-#### How It Works
-1. **API Route Proxy**: Client-side requests go through `/api/prpc` to avoid CORS issues
-2. **getClusterNodes Method**: Uses the Solana-compatible `getClusterNodes` RPC method to retrieve all nodes from the network
-3. **Data Transformation**: The response is transformed to match the pNode data format expected by the UI
-4. **Error Handling**: If the RPC endpoints are unavailable, the app displays a clear error message with retry option
-
-#### RPC Endpoint Details
-- **Primary Endpoint**: `https://api.devnet.xandeum.com:8899`
-- **Fallback**: `https://rpc.xandeum.network`
-- **Protocol**: JSON-RPC 2.0 over HTTP POST
-- **Key Method**: `getClusterNodes` - Returns list of cluster nodes with:
-  - `pubkey`: Node's public key (used as unique ID)
-  - `gossip`: IP:port for gossip protocol
-  - `rpc`: RPC endpoint URL (if available)
-  - `version`: Software version
-
-#### Environment Variables
 ```bash
-NEXT_PUBLIC_XANDEUM_RPC_URL=https://api.devnet.xandeum.com:8899
+# Clone and install
+git clone <repo>
+cd opue
+npm install
+
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with your settings
+
+# Run development server
+npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000)
 
-## 🎯 Performance Score Calculation
+## Features
 
-The performance score (0-100) is calculated using the following weighted components:
+### Core Analytics
 
-- **Uptime (30%)**: Percentage of time pNode is online
-- **Storage Capacity (20%)**: Amount of storage contributed
-- **Response Time (25%)**: Average latency for operations
-- **Reliability (15%)**: Success rate of operations
-- **Software Version (10%)**: Running latest version
+| Feature | Description |
+|---------|-------------|
+| **Network Dashboard** | Real-time overview of network health, storage capacity, and pNode statistics |
+| **pNode Explorer** | Browse all storage nodes with filtering, sorting, and multiple view modes (table/grid/map) |
+| **Geographic Heatmap** | Interactive map showing global pNode distribution |
+| **Historical Analytics** | 30-day trends for network growth, performance, and storage capacity |
+| **Compare pNodes** | Side-by-side comparison of up to 4 pNodes across 6+ metrics |
+| **Network Topology** | Interactive visualization of network node connections and relationships |
 
-## 🌐 Deployment
+### Rewards & Staking
+
+| Feature | Description |
+|---------|-------------|
+| **Epoch Progress** | Real-time epoch tracking with progress bar and time remaining |
+| **Staking APY** | Current annual percentage yield display |
+| **Projected Earnings** | Daily, monthly, and yearly earning projections |
+| **Rewards History** | Recent staking rewards from the last 5 epochs |
+| **Longest Running Node** | Highlighted display of the most reliable pNode by uptime |
+
+### Network Metrics
+
+| Feature | Description |
+|---------|-------------|
+| **Average Latency** | Network-wide response time monitoring |
+| **Active Peers** | Live peer connection count |
+| **24h Volume** | Storage transaction volume over 24 hours |
+| **Health Score** | Overall network health indicator |
+
+### AI-Powered Features
+
+| Feature | Description |
+|---------|-------------|
+| **AI Chat Assistant** | GPT-4o powered assistant for natural language queries about network data |
+| **Anomaly Detection** | Automatic detection of performance drops, concentration risks, and storage anomalies |
+| **Predictive Insights** | 7-day and 30-day predictions for network growth and performance |
+| **Smart Recommendations** | AI-generated insights for network health improvement |
+
+### Monitoring & Alerts
+
+| Feature | Description |
+|---------|-------------|
+| **Alert System** | 7 alert types including offline detection, performance drops, storage warnings |
+| **Watchlist** | Track favorite pNodes with custom nicknames and personalized notifications |
+| **Real-time Updates** | WebSocket-based live data streaming with fallback to polling |
+| **Browser Notifications** | Configurable push notifications with sound options |
+| **Email Notifications** | Configurable digest frequency (real-time, hourly, daily, weekly) |
+
+### User Experience
+
+| Feature | Description |
+|---------|-------------|
+| **Left Sidebar Navigation** | Organized navigation with sections: Overview, Analytics, Account |
+| **Command Palette** | `Cmd/Ctrl + K` for quick navigation and search |
+| **AI Chat Shortcut** | `Cmd/Ctrl + /` to toggle the AI assistant |
+| **Global Search** | `/` to focus search from anywhere |
+| **Dark Mode** | Full dark mode support with system preference detection |
+| **Real-time Animations** | Smooth transitions and live data updates (configurable) |
+| **Export Data** | Export to CSV/JSON formats |
+| **Responsive Design** | Mobile-first design with bottom navigation on mobile |
+| **How to Use Guide** | Step-by-step onboarding guide in Help section |
+
+### Settings & Customization
+
+| Setting | Description |
+|---------|-------------|
+| **Theme Selection** | Light, Dark, or System preference |
+| **Real-time Animations** | Toggle smooth animations and transitions |
+| **Compact Mode** | Denser information display |
+| **Notification Sound** | Audio alerts for notifications |
+| **Developer Mode** | Advanced features and debug information |
+| **Custom RPC Endpoint** | Configure your own primary endpoint |
+| **Auto-refresh Interval** | 15s, 30s, 1min, or 5min options |
+| **Cache Management** | Enable/disable local caching, clear cache |
+
+## Pages & Navigation
+
+### Overview Section
+- **Dashboard** (`/`) - Network overview with quick stats, top performers, and quick actions
+- **pNodes** (`/pnodes`) - Full pNode explorer with table/grid/map views
+- **Network Stats** (`/network`) - Detailed network analytics with 5 tabs:
+  - Overview - Core metrics and charts
+  - Rewards - Epoch progress and staking info
+  - Topology - Network visualization
+  - Quant Analysis - Statistical analysis
+  - Geographic - Location heatmap
+
+### Analytics Section
+- **Historical** (`/analytics`) - 30-day trend analysis
+- **Insights** (`/insights`) - AI-powered insights and recommendations
+- **Watchlist** (`/watchlist`) - Tracked pNodes
+- **Alerts** (`/alerts`) - Alert management
+- **Compare** (`/compare`) - Side-by-side pNode comparison
+
+### Account Section
+- **Wallet** (`/account`) - Wallet connection and account details
+
+### App Section
+- **Settings** (`/settings`) - All app preferences
+- **Help** (`/help`) - Documentation, shortcuts, and how-to guide
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + K` | Open command palette |
+| `Cmd/Ctrl + /` | Toggle AI chat |
+| `/` | Focus global search |
+| `Cmd/Ctrl + D` | Toggle dark mode |
+| `R` | Refresh data |
+| `Esc` | Close dialogs |
+| `?` | Show keyboard shortcuts |
+
+## Architecture
+
+```
+src/
+├── app/                      # Next.js App Router pages
+│   ├── page.tsx              # Homepage dashboard
+│   ├── pnodes/               # pNode explorer & detail pages
+│   ├── network/              # Network analytics (5 tabs)
+│   ├── analytics/            # Historical analytics
+│   ├── insights/             # AI insights
+│   ├── alerts/               # Alert management
+│   ├── compare/              # pNode comparison
+│   ├── watchlist/            # User watchlist
+│   ├── settings/             # App settings
+│   ├── help/                 # Help & documentation
+│   └── api/                  # API routes
+│       ├── chat/             # AI chat endpoint
+│       ├── prpc/             # pRPC proxy
+│       └── analytics/        # Analytics endpoints
+├── components/
+│   ├── app-sidebar.tsx       # Left sidebar navigation
+│   ├── app-header.tsx        # Top header with controls
+│   ├── mobile-nav.tsx        # Mobile bottom navigation
+│   ├── ai-chat.tsx           # AI chat component
+│   ├── rewards-tracking.tsx  # Rewards & epoch tracking
+│   ├── network-topology.tsx  # Network visualization
+│   ├── enhanced-network-stats.tsx # Extended metrics
+│   ├── pnodes/               # pNode components
+│   ├── alerts/               # Alert components
+│   └── ui/                   # shadcn/ui components
+├── services/
+│   ├── pnode.service.ts      # pNode data fetching
+│   ├── analytics.service.ts  # Analytics & predictions
+│   ├── alert.service.ts      # Alert management
+│   └── websocket.service.ts  # Real-time updates
+└── types/                    # TypeScript definitions
+```
+
+## Environment Variables
+
+Create a `.env.local` file with:
+
+```bash
+# Required - Xandeum Network
+NEXT_PUBLIC_XANDEUM_RPC_URL=https://api.devnet.xandeum.com:8899
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+
+# Required for AI Chat - Get your key at https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-...
+
+# Optional - Database (for analytics persistence)
+DATABASE_URL=postgresql://user:password@localhost:5432/xandeum_analytics
+
+# Optional - Indexer
+INDEXER_ENABLED=true
+ANOMALY_THRESHOLD_STDDEV=2.5
+```
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 15 (App Router) + React 19 |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS 4 |
+| **UI Components** | shadcn/ui + Radix UI |
+| **AI SDK** | Vercel AI SDK v5 + OpenAI GPT-4o |
+| **Data Fetching** | TanStack React Query |
+| **State Management** | Jotai |
+| **Charts** | Recharts |
+| **Maps** | Leaflet + React-Leaflet |
+| **Database** | PostgreSQL + Prisma |
+| **Blockchain** | @solana/web3.js, @solana/wallet-adapter |
+
+## API Endpoints
+
+### pRPC Proxy
+```
+POST /api/prpc
+```
+Proxies requests to Xandeum RPC to avoid CORS issues.
+
+### AI Chat
+```
+POST /api/chat
+GET /api/chat  # Health check
+```
+Streams AI responses with tool execution for network queries.
+
+### Analytics
+```
+GET /api/analytics/history      # Historical network data
+GET /api/analytics/anomalies    # Detected anomalies
+GET /api/analytics/predictions  # Network predictions
+GET /api/analytics/leaderboard  # Top performers
+GET /api/analytics/pnode/:id    # Individual pNode analytics
+```
+
+### Alerts
+```
+GET/POST /api/alerts       # Manage alerts
+GET/POST /api/alerts/rules # Manage alert rules
+```
+
+## AI Chat Tools
+
+The AI assistant has access to these tools:
+
+| Tool | Description |
+|------|-------------|
+| `get_pnodes` | List all pNodes with status and metrics |
+| `get_network_stats` | Network-wide statistics |
+| `get_pnode_details` | Detailed info for specific pNode |
+| `search_pnodes` | Filter pNodes by status, location, performance |
+| `get_epoch_info` | Current epoch and slot information |
+| `get_validators` | Validator/vote account information |
+
+Example queries:
+- "Show me the network health"
+- "List all online pNodes"
+- "Find pNodes with performance above 90"
+- "What's the current epoch?"
+
+## Alert Types
+
+| Type | Trigger |
+|------|---------|
+| `pnode_offline` | Node goes offline |
+| `pnode_performance_drop` | Performance below threshold |
+| `pnode_storage_full` | Storage utilization > 90% |
+| `network_decentralization` | Geographic concentration risk |
+| `new_pnode_joined` | New provider joins network |
+| `pnode_version_outdated` | Deprecated software version |
+| `network_storage_low` | Network-wide storage warning |
+
+## Development
+
+```bash
+# Development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run production server
+npm run start
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+
+# Database management
+npx prisma studio
+npx prisma migrate dev
+```
+
+## Deployment
 
 ### Vercel (Recommended)
 
-1. Push your code to GitHub
-2. Import the project to Vercel
-3. Set environment variables in Vercel dashboard
+1. Push code to GitHub
+2. Import project to [Vercel](https://vercel.com)
+3. Configure environment variables:
+   - `NEXT_PUBLIC_XANDEUM_RPC_URL`
+   - `NEXT_PUBLIC_SOLANA_RPC_URL`
+   - `OPENAI_API_KEY`
+   - `DATABASE_URL` (use Vercel Postgres or Neon)
 4. Deploy!
 
-The platform is optimized for Vercel with automatic deployments and preview environments for pull requests.
+### Docker
 
-### Build for Production
+```bash
+docker build -t xandeum-analytics .
+docker run -p 3000:3000 --env-file .env.local xandeum-analytics
+```
 
-\`\`\`bash
-npm run build
-npm run start
-\`\`\`
+## How to Use
 
-## 📊 Data Refresh Strategy
+1. **Connect Your Wallet** - Click "Connect Wallet" in the header to link your Solana wallet
+2. **Select Your Network** - Use the cluster selector to choose Mainnet, Devnet, or Testnet
+3. **Explore the Dashboard** - View network health, top performers, and key metrics
+4. **Monitor pNodes** - Browse all nodes in table, grid, or map view
+5. **Track Rewards** - Check staking APY, epoch progress, and projected earnings
+6. **Set Up Alerts** - Create custom alerts for status changes or performance drops
+7. **Use AI Assistant** - Press `Cmd/Ctrl + /` to ask questions about the network
+8. **Customize Settings** - Configure theme, notifications, and developer options
 
-- **pNode List**: Auto-refreshes every 30 seconds
-- **Network Stats**: Auto-refreshes every 30 seconds
-- **pNode Details**: Cached for 1 minute
-- **Charts**: Updates on data refresh
+## Performance Optimizations
 
-## 🎨 Customization
+- **React Query caching** - 30-second stale time for network data
+- **ISR** - Incremental Static Regeneration for static pages
+- **Code splitting** - Dynamic imports for heavy components (maps, charts)
+- **Image optimization** - Next.js Image component
+- **WebSocket** - Real-time updates without polling overhead
 
-### Color Scheme
-The application uses a sophisticated, shadcn/ui-inspired color palette defined in `src/app/globals.css`. Colors are defined using OKLCH for better color consistency across light and dark modes.
+## Browser Support
 
-### Adding New Charts
-To add new visualizations:
-1. Install Recharts (already included)
-2. Create chart component
-3. Fetch data using React Query hooks
-4. Add to dashboard or analytics page
+- Chrome 90+
+- Firefox 90+
+- Safari 14+
+- Edge 90+
 
-## 🧪 Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
-- `npm test` - Run unit tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
-
-### Error Handling
-The application displays clear error messages when the pRPC API is unavailable, with:
-- Detailed error information
-- Retry functionality
-- Links to Xandeum Discord for support
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is built for the Xandeum pNode Analytics bounty.
-
-## 🔗 Links
+## Links
 
 - [Xandeum Website](https://xandeum.network)
 - [Xandeum Documentation](https://xandeum.github.io/xandeum-web3.js)
 - [Xandeum Discord](https://discord.gg/uqRSmmM5m)
-- [Product Requirements Document](./resources/PRD.md)
+- [AI SDK Documentation](https://ai-sdk.dev)
 
-## 🙏 Acknowledgments
+## License
 
-- Xandeum Labs for building innovative storage solutions on Solana
-- shadcn/ui for the excellent component library
-- The Solana developer community
+Built for the Xandeum pNode Analytics bounty.
 
 ---
 
-Built with ❤️ for the Xandeum ecosystem
+Built with Next.js 15, React 19, Vercel AI SDK, and shadcn/ui

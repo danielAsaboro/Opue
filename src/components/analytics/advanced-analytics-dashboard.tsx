@@ -50,15 +50,18 @@ export function AdvancedAnalyticsDashboard({ pnodes, className = '' }: AdvancedA
   const analyticsService = getAnalyticsService()
 
   useEffect(() => {
-    if (pnodes.length > 0) {
-      const anomalies = analyticsService.detectAnomalies(pnodes)
-      const predictions = analyticsService.generatePredictions(pnodes)
-      const healthScore = analyticsService.calculateNetworkHealth(pnodes)
-      const metrics = analyticsService.getAnalyticsMetrics(pnodes)
+    async function loadAnalytics() {
+      if (pnodes.length > 0) {
+        const anomalies = analyticsService.detectAnomalies(pnodes)
+        const predictions = analyticsService.generatePredictions(pnodes)
+        const healthScore = analyticsService.calculateNetworkHealth(pnodes)
+        const metrics = await analyticsService.getAnalyticsMetrics(pnodes)
 
-      setAnalytics({ anomalies, predictions, healthScore, metrics })
+        setAnalytics({ anomalies, predictions, healthScore, metrics })
+      }
     }
-  }, [pnodes])
+    loadAnalytics()
+  }, [pnodes, analyticsService])
 
   if (!analytics) {
     return (
@@ -513,5 +516,13 @@ export function AdvancedAnalyticsDashboard({ pnodes, className = '' }: AdvancedA
     </div>
   )
 }
+
+
+
+
+
+
+
+
 
 

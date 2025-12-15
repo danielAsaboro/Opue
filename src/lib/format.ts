@@ -20,8 +20,21 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 /**
  * Format a timestamp to relative time (e.g., "2 hours ago")
  */
-export function formatRelativeTime(timestamp: number | Date): string {
-    const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+export function formatRelativeTime(timestamp: number | Date | string): string {
+    let date: Date;
+    if (typeof timestamp === 'number') {
+        date = new Date(timestamp);
+    } else if (typeof timestamp === 'string') {
+        date = new Date(timestamp);
+    } else {
+        date = timestamp;
+    }
+
+    // Validate date
+    if (isNaN(date.getTime())) {
+        return 'Unknown';
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffSec = Math.floor(diffMs / 1000);
@@ -40,8 +53,20 @@ export function formatRelativeTime(timestamp: number | Date): string {
 /**
  * Format a timestamp to a readable date string
  */
-export function formatDate(timestamp: number | Date): string {
-    const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+export function formatDate(timestamp: number | Date | string): string {
+    let date: Date;
+    if (typeof timestamp === 'number') {
+        date = new Date(timestamp);
+    } else if (typeof timestamp === 'string') {
+        date = new Date(timestamp);
+    } else {
+        date = timestamp;
+    }
+
+    if (isNaN(date.getTime())) {
+        return 'Unknown';
+    }
+
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -56,6 +81,25 @@ export function formatDate(timestamp: number | Date): string {
  */
 export function formatPercentage(value: number, decimals: number = 1): string {
     return `${value.toFixed(decimals)}%`;
+}
+
+/**
+ * Format duration in seconds to human-readable string (e.g., "3d 9h")
+ */
+export function formatDuration(seconds: number): string {
+    if (seconds < 60) return `${Math.floor(seconds)}s`;
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (days > 0) {
+        return `${days}d ${hours}h`;
+    }
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
 }
 
 /**

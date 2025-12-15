@@ -3,6 +3,9 @@ import './globals.css'
 import { AppProviders } from '@/components/app-providers'
 import { AppLayout } from '@/components/app-layout'
 import { CommandPalette } from '@/components/command-palette'
+import { AiChat } from '@/components/ai-chat'
+import { MobileNav } from '@/components/mobile-nav'
+import { OnboardingModal } from '@/components/onboarding-modal'
 import React from 'react'
 
 export const metadata: Metadata = {
@@ -10,23 +13,18 @@ export const metadata: Metadata = {
   description: 'Real-time analytics and insights for the Xandeum storage network',
 }
 
-const links: { label: string; path: string }[] = [
-  { label: 'Home', path: '/' },
-  { label: 'pNodes', path: '/pnodes' },
-  { label: 'Network', path: '/network' },
-  { label: 'Analytics', path: '/analytics' },
-  { label: 'Watchlist', path: '/watchlist' },
-  { label: 'Alerts', path: '/alerts' },
-  { label: 'Compare', path: '/compare' },
-]
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
         <AppProviders>
           <CommandPalette />
-          <AppLayout links={links}>{children}</AppLayout>
+          <AiChat />
+          <OnboardingModal />
+          <AppLayout>
+            <div className="pb-16 md:pb-0">{children}</div>
+          </AppLayout>
+          <MobileNav />
         </AppProviders>
       </body>
     </html>

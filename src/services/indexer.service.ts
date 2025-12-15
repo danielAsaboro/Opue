@@ -24,11 +24,9 @@ export class IndexerService {
    */
   async start(intervalMs: number = 30000): Promise<void> {
     if (this.isRunning) {
-      console.log('[Indexer] Already running')
       return
     }
 
-    console.log(`[Indexer] Starting with interval ${intervalMs}ms`)
     this.isRunning = true
 
     // Run immediately
@@ -49,7 +47,6 @@ export class IndexerService {
       this.intervalId = null
     }
     this.isRunning = false
-    console.log('[Indexer] Stopped')
   }
 
   /**
@@ -183,7 +180,7 @@ export class IndexerService {
         },
       })
 
-      // Create snapshot
+      // Create snapshot with all pnRPC data
       await prisma.pNodeSnapshot.create({
         data: {
           pnodeId: dbPNode.id,
@@ -196,6 +193,16 @@ export class IndexerService {
           usedBytes: BigInt(Math.floor(pnode.storage.usedBytes)),
           utilization: pnode.storage.utilization,
           fileSystems: pnode.storage.fileSystems,
+          // New pnRPC fields
+          uptimeSeconds: pnode.performance.uptimeSeconds ? BigInt(pnode.performance.uptimeSeconds) : null,
+          cpuPercent: pnode.networkMetrics?.cpuPercent ?? null,
+          ramUsed: pnode.networkMetrics?.ramUsed ? BigInt(pnode.networkMetrics.ramUsed) : null,
+          ramTotal: pnode.networkMetrics?.ramTotal ? BigInt(pnode.networkMetrics.ramTotal) : null,
+          activeStreams: pnode.networkMetrics?.activeStreams ?? null,
+          packetsReceived: pnode.networkMetrics?.packetsReceived ? BigInt(pnode.networkMetrics.packetsReceived) : null,
+          packetsSent: pnode.networkMetrics?.packetsSent ? BigInt(pnode.networkMetrics.packetsSent) : null,
+          isPublic: pnode.isPublic ?? false,
+          pnrpcPort: pnode.pnrpcPort ?? null,
         },
       })
     }
