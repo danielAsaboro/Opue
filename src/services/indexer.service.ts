@@ -58,9 +58,10 @@ export class IndexerService {
 
     try {
       // Fetch all data in parallel for efficiency
+      // Note: includeNetworkMetrics=true fetches CPU/RAM/packet data from get-stats for each pNode
       const [pnodes, networkStats, voteAccounts, epochInfo, perfSamples, inflation, supply, stakeMin] =
         await Promise.all([
-          pnodeService.fetchAllPNodes(),
+          pnodeService.fetchAllPNodes({ includeNetworkMetrics: true }),
           pnodeService.fetchNetworkStats(),
           pnodeService.fetchVoteAccounts().catch((e) => {
             console.warn('[Indexer] Vote accounts fetch failed:', e.message)

@@ -11,7 +11,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { truncatePublicKey, copyToClipboard } from '@/lib/format';
-import { Copy, ExternalLink, Globe, MapPin, Building, Clock, Cpu, Network } from 'lucide-react';
+import { Copy, ExternalLink, Globe, MapPin, Building, Clock, Cpu, Network, HardDrive, Activity } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { formatBytes, formatDuration } from '@/lib/format';
 import { toast } from 'sonner';
 
 interface PNodeDetailPanelProps {
@@ -159,9 +161,16 @@ export function PNodeDetailPanel({ pnodeId, open, onClose }: PNodeDetailPanelPro
                                             pNode {truncatePublicKey(pnode.id, 6, 6)}
                                         </SheetTitle>
                                     </div>
-                                    <span className={`text-xs font-semibold uppercase px-2 py-1 rounded ${statusColors.bg} ${statusColors.text}`}>
-                                        {pnode.status}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {pnode.isPublic && (
+                                            <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                                Public
+                                            </span>
+                                        )}
+                                        <span className={`text-xs font-semibold uppercase px-2 py-1 rounded ${statusColors.bg} ${statusColors.text}`}>
+                                            {pnode.status}
+                                        </span>
+                                    </div>
                                 </div>
                                 <SheetDescription className="font-mono text-xs truncate pr-4">
                                     {pnode.id}
@@ -186,6 +195,93 @@ export function PNodeDetailPanel({ pnodeId, open, onClose }: PNodeDetailPanelPro
                                     <div className="text-sm font-semibold mt-1">{pnode.performanceScore}/100</div>
                                 </div>
                             </div>
+
+                            {/* Storage Section */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    <HardDrive className="h-3.5 w-3.5" />
+                                    Storage
+                                </div>
+                                <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Capacity</span>
+                                        <span className="font-medium">{formatBytes(pnode.storage.capacityBytes)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Used</span>
+                                        <span className="font-medium">{formatBytes(pnode.storage.usedBytes)}</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Utilization</span>
+                                            <span>{pnode.storage.utilization.toFixed(4)}%</span>
+                                        </div>
+                                        <Progress value={Math.min(pnode.storage.utilization, 100)} className="h-1.5" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Performance Section */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    <Activity className="h-3.5 w-3.5" />
+                                    Performance
+                                </div>
+                                <div className="bg-muted/30 rounded-lg p-3 grid grid-cols-2 gap-3">
+                                    <div>
+                                        <div className="text-[10px] uppercase text-muted-foreground">Uptime</div>
+                                        <div className="text-sm font-medium">
+                                            {pnode.performance.uptimeSeconds
+                                                ? formatDuration(pnode.performance.uptimeSeconds)
+                                                : `${pnode.performance.uptime.toFixed(1)}%`}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase text-muted-foreground">Latency</div>
+                                        <div className="text-sm font-medium">{pnode.performance.averageLatency.toFixed(0)}ms</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase text-muted-foreground">Success Rate</div>
+                                        <div className="text-sm font-medium">{pnode.performance.successRate.toFixed(1)}%</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase text-muted-foreground">Score</div>
+                                        <div className="text-sm font-medium">{pnode.performanceScore}/100</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Network Metrics Section (if available) */}
+                            {pnode.networkMetrics && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        <Cpu className="h-3.5 w-3.5" />
+                                        System Metrics
+                                    </div>
+                                    <div className="bg-muted/30 rounded-lg p-3 grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div className="text-[10px] uppercase text-muted-foreground">CPU</div>
+                                            <div className="text-sm font-medium">{pnode.networkMetrics.cpuPercent.toFixed(1)}%</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] uppercase text-muted-foreground">RAM</div>
+                                            <div className="text-sm font-medium">
+                                                {formatBytes(pnode.networkMetrics.ramUsed)} / {formatBytes(pnode.networkMetrics.ramTotal)}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] uppercase text-muted-foreground">Active Streams</div>
+                                            <div className="text-sm font-medium">{pnode.networkMetrics.activeStreams}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] uppercase text-muted-foreground">Packets</div>
+                                            <div className="text-sm font-medium text-xs">
+                                                {pnode.networkMetrics.packetsReceived.toLocaleString()} / {pnode.networkMetrics.packetsSent.toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Endpoints Section */}
                             <div className="space-y-3">

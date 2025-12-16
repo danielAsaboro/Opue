@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { PNode } from '@/types/pnode';
 import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 // Gossip event types based on Solana/Xandeum protocol
 export type GossipEventType =
@@ -80,7 +81,9 @@ export function GlobeMap({ pnodes, className }: GlobeMapProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [events, setEvents] = useState<GossipEvent[]>([]);
     const [arcs, setArcs] = useState<ArcData[]>([]);
-    const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const [dimensions, setDimensions] = useState({ width: 800, height: 800 });
+    const [showGossipFeed, setShowGossipFeed] = useState(true);
+    const [showTopology, setShowTopology] = useState(true);
 
     // Dynamically import Globe on client side
     useEffect(() => {
@@ -98,7 +101,7 @@ export function GlobeMap({ pnodes, className }: GlobeMapProps) {
             if (containerRef.current) {
                 setDimensions({
                     width: containerRef.current.clientWidth,
-                    height: 600,
+                    height: 800,
                 });
             }
         };
@@ -223,7 +226,7 @@ export function GlobeMap({ pnodes, className }: GlobeMapProps) {
 
     if (!isLoaded || !Globe) {
         return (
-            <div className={cn("relative w-full h-[600px] bg-black rounded-xl border border-white/10 overflow-hidden flex items-center justify-center", className)}>
+            <div className={cn("relative w-full h-[800px] bg-black rounded-xl border border-white/10 overflow-hidden flex items-center justify-center", className)}>
                 <div className="text-center">
                     <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <p className="text-gray-400 text-sm">Loading globe...</p>
@@ -234,121 +237,151 @@ export function GlobeMap({ pnodes, className }: GlobeMapProps) {
 
     return (
         <div className={cn("relative w-full", className)}>
-            {/* Globe Container */}
+            {/* Globe Container - shifted right to avoid overlay obstruction */}
             <div
                 ref={containerRef}
-                className="w-full h-[600px] rounded-xl overflow-hidden bg-[#050510]"
+                className="w-full h-[800px] rounded-xl overflow-hidden bg-[#050510] flex justify-center"
             >
-                <Globe
-                    ref={globeRef}
-                    width={dimensions.width}
-                    height={dimensions.height}
-                    backgroundColor="rgba(0,0,0,0)"
-                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                    atmosphereColor="#6366f1"
-                    atmosphereAltitude={0.25}
-                    // Points (nodes)
-                    pointsData={nodeCoords}
-                    pointLat="lat"
-                    pointLng="lng"
-                    pointColor="color"
-                    pointAltitude={0.01}
-                    pointRadius="size"
-                    pointsMerge={false}
-                    // Arcs (gossip events)
-                    arcsData={arcs}
-                    arcStartLat="startLat"
-                    arcStartLng="startLng"
-                    arcEndLat="endLat"
-                    arcEndLng="endLng"
-                    arcColor="color"
-                    arcAltitude={0.15}
-                    arcStroke={0.5}
-                    arcDashLength={0.4}
-                    arcDashGap={0.2}
-                    arcDashAnimateTime={1500}
-                    // Labels
-                    labelsData={nodeCoords.slice(0, 20)} // Show labels for first 20 nodes
-                    labelLat="lat"
-                    labelLng="lng"
-                    labelText={(d: NodeCoordinate) => d.id.slice(0, 6)}
-                    labelSize={0.5}
-                    labelDotRadius={0.3}
-                    labelColor={() => 'rgba(255, 255, 255, 0.5)'}
-                    labelResolution={2}
-                />
-            </div>
-
-            {/* Live Event Feed Overlay */}
-            <div className="absolute top-4 left-4 w-80 max-h-[300px] overflow-hidden pointer-events-auto">
-                <div className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 p-3">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        <span className="text-xs font-semibold text-white uppercase tracking-wider">Live Gossip Feed</span>
-                    </div>
-                    <div className="space-y-1.5 max-h-[240px] overflow-y-auto custom-scrollbar">
-                        {events.slice(0, 15).map((event, idx) => {
-                            const config = eventConfig[event.type];
-                            return (
-                                <div
-                                    key={event.id}
-                                    className={cn(
-                                        "flex items-center gap-2 text-xs p-1.5 rounded transition-all duration-300",
-                                        idx === 0 ? "bg-white/10" : "bg-transparent opacity-70"
-                                    )}
-                                >
-                                    <span className="text-sm flex-shrink-0">{config.icon}</span>
-                                    <div className="flex-1 min-w-0 truncate">
-                                        <span
-                                            className="font-medium"
-                                            style={{ color: config.color }}
-                                        >
-                                            {config.label}
-                                        </span>
-                                        <span className="text-gray-500 ml-1 font-mono text-[10px]">
-                                            {event.sourceId.slice(0, 6)}
-                                            {event.targetId && ` → ${event.targetId.slice(0, 6)}`}
-                                        </span>
-                                    </div>
-                                    <span className="text-gray-600 text-[10px] flex-shrink-0">
-                                        {Math.round((Date.now() - event.timestamp) / 1000)}s
-                                    </span>
-                                </div>
-                            );
-                        })}
-                        {events.length === 0 && (
-                            <div className="text-gray-500 text-xs text-center py-4">
-                                Waiting for gossip events...
-                            </div>
-                        )}
-                    </div>
+                <div className="ml-20">
+                    <Globe
+                        ref={globeRef}
+                        width={dimensions.width}
+                        height={dimensions.height}
+                        backgroundColor="rgba(0,0,0,0)"
+                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                        atmosphereColor="#6366f1"
+                        atmosphereAltitude={0.25}
+                        // Points (nodes)
+                        pointsData={nodeCoords}
+                        pointLat="lat"
+                        pointLng="lng"
+                        pointColor="color"
+                        pointAltitude={0.01}
+                        pointRadius="size"
+                        pointsMerge={false}
+                        // Arcs (gossip events)
+                        arcsData={arcs}
+                        arcStartLat="startLat"
+                        arcStartLng="startLng"
+                        arcEndLat="endLat"
+                        arcEndLng="endLng"
+                        arcColor="color"
+                        arcAltitude={0.15}
+                        arcStroke={0.5}
+                        arcDashLength={0.4}
+                        arcDashGap={0.2}
+                        arcDashAnimateTime={1500}
+                        // Labels
+                        labelsData={nodeCoords.slice(0, 20)} // Show labels for first 20 nodes
+                        labelLat="lat"
+                        labelLng="lng"
+                        labelText={(d: NodeCoordinate) => d.id.slice(0, 6)}
+                        labelSize={0.5}
+                        labelDotRadius={0.3}
+                        labelColor={() => 'rgba(255, 255, 255, 0.5)'}
+                        labelResolution={2}
+                    />
                 </div>
             </div>
 
-            {/* Stats Overlay */}
+            {/* Live Event Feed Overlay - Collapsible */}
+            <div className="absolute top-4 left-4 w-72 pointer-events-auto">
+                <div className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden">
+                    <button
+                        onClick={() => setShowGossipFeed(!showGossipFeed)}
+                        className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            <span className="text-xs font-semibold text-white uppercase tracking-wider">Live Gossip Feed</span>
+                        </div>
+                        {showGossipFeed ? (
+                            <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
+                    </button>
+                    {showGossipFeed && (
+                        <div className="px-3 pb-3">
+                            <div className="space-y-1.5 max-h-[200px] overflow-y-auto custom-scrollbar">
+                                {events.slice(0, 12).map((event, idx) => {
+                                    const config = eventConfig[event.type];
+                                    return (
+                                        <div
+                                            key={event.id}
+                                            className={cn(
+                                                "flex items-center gap-2 text-xs p-1.5 rounded transition-all duration-300",
+                                                idx === 0 ? "bg-white/10" : "bg-transparent opacity-70"
+                                            )}
+                                        >
+                                            <span className="text-sm flex-shrink-0">{config.icon}</span>
+                                            <div className="flex-1 min-w-0 truncate">
+                                                <span
+                                                    className="font-medium"
+                                                    style={{ color: config.color }}
+                                                >
+                                                    {config.label}
+                                                </span>
+                                                <span className="text-gray-500 ml-1 font-mono text-[10px]">
+                                                    {event.sourceId.slice(0, 6)}
+                                                    {event.targetId && ` → ${event.targetId.slice(0, 6)}`}
+                                                </span>
+                                            </div>
+                                            <span className="text-gray-600 text-[10px] flex-shrink-0">
+                                                {Math.round((Date.now() - event.timestamp) / 1000)}s
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                                {events.length === 0 && (
+                                    <div className="text-gray-500 text-xs text-center py-4">
+                                        Waiting for gossip events...
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Stats Overlay - Collapsible */}
             <div className="absolute bottom-4 right-4 pointer-events-auto">
-                <div className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 p-3">
-                    <div className="text-xs font-medium text-gray-400 mb-2">Network Topology</div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
-                            <span className="text-xs text-gray-300">Online</span>
+                <div className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden">
+                    <button
+                        onClick={() => setShowTopology(!showTopology)}
+                        className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition-colors"
+                    >
+                        <span className="text-xs font-medium text-gray-400">Network Topology</span>
+                        {showTopology ? (
+                            <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
+                    </button>
+                    {showTopology && (
+                        <div className="px-3 pb-3">
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                                    <span className="text-xs text-gray-300">Online</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]" />
+                                    <span className="text-xs text-gray-300">Delinquent</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
+                                    <span className="text-xs text-gray-300">Offline</span>
+                                </div>
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-white/10">
+                                <div className="text-[10px] text-gray-500">
+                                    {nodeCoords.length} nodes • ~{Math.round(events.length / 5 * 60)} events/min
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]" />
-                            <span className="text-xs text-gray-300">Delinquent</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
-                            <span className="text-xs text-gray-300">Offline</span>
-                        </div>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-white/10">
-                        <div className="text-[10px] text-gray-500">
-                            {nodeCoords.length} nodes • ~{Math.round(events.length / 5 * 60)} events/min
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

@@ -10,7 +10,7 @@ const GlobeMap = dynamic(
     {
         ssr: false,
         loading: () => (
-            <div className="w-full h-[600px] bg-black/40 rounded-xl flex items-center justify-center border border-white/10">
+            <div className="w-full h-[800px] bg-black/40 rounded-xl flex items-center justify-center border border-white/10">
                 <div className="text-center">
                     <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <p className="text-gray-400 text-sm">Loading globe...</p>
@@ -33,7 +33,7 @@ export function PNodeMap({ pnodes }: PNodeMapProps) {
 
     if (!isMounted) {
         return (
-            <div className="w-full h-[600px] bg-black/40 rounded-xl flex items-center justify-center border border-white/10">
+            <div className="w-full h-[800px] bg-black/40 rounded-xl flex items-center justify-center border border-white/10">
                 <div className="text-center">
                     <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <p className="text-gray-400 text-sm">Loading globe...</p>
