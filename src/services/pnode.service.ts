@@ -1,4 +1,5 @@
 import { Connection } from '@solana/web3.js'
+import http from 'http'
 import type { PNode, PNodeDetails, NetworkStats, PNodeStatus, PerformanceMetrics, StorageMetrics, NetworkMetrics } from '@/types/pnode'
 import { getLocationForIP, lookupGeoIP } from './geoip.service'
 import { prisma } from '@/lib/prisma'
@@ -252,13 +253,15 @@ const PNRPC_SEED_NODES = [
   '192.190.136.37',
 ]
 
+// pnRPC port for get-pods-with-stats, get-stats, etc.
+const PNRPC_PORT = 6000
+
 /**
  * Service for interacting with Xandeum pRPC endpoints
  */
 export class PNodeService {
   private connection: Connection
   private rpcUrl: string
-  private prpcPort: number = 6000
 
   constructor(rpcUrl?: string) {
     this.rpcUrl = rpcUrl || process.env.NEXT_PUBLIC_XANDEUM_RPC_URL || 'https://apis.devnet.xandeum.com'
@@ -328,40 +331,50 @@ export class PNodeService {
 
   /**
    * Call pnRPC endpoint on port 6000 for real pNode data
+   * Uses Node.js http module instead of fetch due to undici "bad port" bug
    */
   private async callPnRPC<T>(ip: string, method: string, timeoutMs: number = 5000): Promise<T> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
-
-    try {
-      const response = await fetch(`http://${ip}:${this.prpcPort}/rpc`, {
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: ip,
+        port: PNRPC_PORT,
+        path: '/rpc',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method,
-          params: [],
-          id: 1,
-        }),
-        signal: controller.signal,
+        timeout: timeoutMs,
+      }
+
+      const req = http.request(options, (res) => {
+        let data = ''
+        res.on('data', (chunk) => { data += chunk })
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data)
+            if (json.error) {
+              reject(new Error(`pnRPC error: ${json.error.message}`))
+            } else {
+              resolve(json as T)
+            }
+          } catch (e) {
+            reject(new Error(`Failed to parse pnRPC response: ${e}`))
+          }
+        })
       })
 
-      clearTimeout(timeoutId)
+      req.on('error', (e) => reject(e))
+      req.on('timeout', () => {
+        req.destroy()
+        reject(new Error('pnRPC request timed out'))
+      })
 
-      if (!response.ok) {
-        throw new Error(`pnRPC call failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-      if (data.error) {
-        throw new Error(`pnRPC error: ${data.error.message}`)
-      }
-
-      return data as T
-    } catch (error) {
-      clearTimeout(timeoutId)
-      throw error
-    }
+      req.write(JSON.stringify({
+        jsonrpc: '2.0',
+        method,
+        params: [],
+        id: 1,
+      }))
+      req.end()
+    })
   }
 
   /**
