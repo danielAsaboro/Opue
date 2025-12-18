@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { formatBytes, formatRelativeTime, truncatePublicKey, formatPercentage } from '@/lib/format';
+import { formatBytes, formatRelativeTime, truncatePublicKey, formatPercentage, formatUtilization } from '@/lib/format';
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -256,7 +256,7 @@ export function PNodeTable({ pnodes, isLoading, onSelectPNode }: PNodeTableProps
                                     <span className="text-muted-foreground">--</span>
                                 ) : (
                                     <span className={pnode.storage.utilization > 80 ? 'text-amber-600' : ''}>
-                                        {formatPercentage(pnode.storage.utilization, 4)}
+                                        {formatUtilization(pnode.storage.utilization)}
                                     </span>
                                 )}
                             </TableCell>

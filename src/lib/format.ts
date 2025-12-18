@@ -84,6 +84,18 @@ export function formatPercentage(value: number, decimals: number = 1): string {
 }
 
 /**
+ * Format utilization percentage with smart handling of very small values
+ * Handles the case where storage utilization is extremely small (e.g., 34 bytes / 15 TB)
+ */
+export function formatUtilization(value: number): string {
+    if (value === 0) return '0%';
+    if (value >= 0.01) return `${value.toFixed(2)}%`;
+    if (value >= 0.0001) return `${value.toFixed(4)}%`;
+    // For very small non-zero values, show "< 0.0001%"
+    return '< 0.0001%';
+}
+
+/**
  * Format duration in seconds to human-readable string (e.g., "3d 9h")
  */
 export function formatDuration(seconds: number): string {
