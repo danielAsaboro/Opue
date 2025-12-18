@@ -24,6 +24,7 @@ import {
 } from '@/components/ai-elements/prompt-input'
 import { Suggestions, Suggestion } from '@/components/ai-elements/suggestion'
 import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput } from '@/components/ai-elements/tool'
+import { renderToolOutput, hasCustomRenderer } from '@/components/ai-elements/tool-renderers'
 
 const suggestedPrompts = [
   { label: 'Network Health', prompt: 'Show me the network health and statistics' },
@@ -131,7 +132,7 @@ export function AiChat() {
               </div>
               <div>
                 <h3 className="font-semibold text-sm">pNode Assistant</h3>
-                <p className="text-xs text-muted-foreground">Powered by GPT-4o</p>
+                <p className="text-xs text-muted-foreground">Powered by Llama 3.3 70B</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -155,9 +156,9 @@ export function AiChat() {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />
                     <div className="text-sm">
-                      <p className="font-medium text-yellow-600 dark:text-yellow-400">OpenAI API Key Required</p>
+                      <p className="font-medium text-yellow-600 dark:text-yellow-400">Groq API Key Required</p>
                       <p className="text-muted-foreground mt-1">
-                        Add <code className="bg-muted px-1 rounded">OPENAI_API_KEY</code> to your <code className="bg-muted px-1 rounded">.env.local</code> file to enable AI chat.
+                        Add <code className="bg-muted px-1 rounded">GROQ_API_KEY</code> to your <code className="bg-muted px-1 rounded">.env.local</code> file to enable AI chat.
                       </p>
                     </div>
                   </div>
@@ -218,13 +219,28 @@ export function AiChat() {
                           const toolName = part.type.replace('tool-', '')
                           const hasInput = part.input !== undefined && part.input !== null
                           const hasOutput = part.state === 'output-available' || part.state === 'output-error'
+                          const isError = part.state === 'output-error'
+
+                          // Use custom renderer for completed tools with output
+                          if (hasOutput && !isError && hasCustomRenderer(toolName)) {
+                            const customUI = renderToolOutput(toolName, part.output)
+                            if (customUI) {
+                              return (
+                                <div key={index} className="my-2">
+                                  {customUI}
+                                </div>
+                              )
+                            }
+                          }
+
+                          // Fallback to default tool display (loading states, errors, or tools without custom renderers)
                           return (
                             <Tool key={index} defaultOpen={part.state === 'output-available'}>
                               <ToolHeader type={part.type} state={part.state} title={toolName} />
                               <ToolContent>
                                 {hasInput && <ToolInput input={part.input} />}
                                 {hasOutput && (
-                                  <ToolOutput output={part.output} errorText={part.state === 'output-error' ? String(part.output) : undefined} />
+                                  <ToolOutput output={part.output} errorText={isError ? String(part.output) : undefined} />
                                 )}
                               </ToolContent>
                             </Tool>

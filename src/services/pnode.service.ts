@@ -844,14 +844,12 @@ export class PNodeService {
         return pnodes
       }
     } catch (error) {
-      console.warn('[pnRPC] Failed to fetch from pnRPC, falling back to RPC endpoints:', error)
+      console.error('[pnRPC] Failed to fetch pNodes from all seed nodes:', error)
+      throw new PRPCError(
+        'Unable to fetch pNode data. The pnRPC seed nodes may be temporarily unavailable.',
+        PNRPC_SEED_NODES
+      )
     }
-
-    // Fallback to old method (getClusterNodes) - this returns validators, not pNodes
-    // but is better than nothing if pnRPC is completely unavailable
-    const response = await this.fetchPodsFromEndpoints()
-    console.log(`[Fallback] Transforming ${response.result.pods.length} pods to PNode format`)
-    return Promise.all(response.result.pods.map((pod) => this.transformPodToPNode(pod)))
   }
 
   /**
