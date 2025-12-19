@@ -65,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Feature | Description |
 |---------|-------------|
-| **AI Chat Assistant** | GPT-4o powered assistant for natural language queries about network data |
+| **AI Chat Assistant** | Llama 3.3 70B powered assistant for natural language queries about network data |
 | **Anomaly Detection** | Automatic detection of performance drops, concentration risks, and storage anomalies |
 | **Predictive Insights** | 7-day and 30-day predictions for network growth and performance |
 | **Smart Recommendations** | AI-generated insights for network health improvement |
@@ -192,8 +192,8 @@ Create a `.env.local` file with:
 NEXT_PUBLIC_XANDEUM_RPC_URL=https://api.devnet.xandeum.com:8899
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
 
-# Required for AI Chat - Get your key at https://platform.openai.com/api-keys
-OPENAI_API_KEY=sk-...
+# Required for AI Chat - Get your key at https://console.groq.com/keys
+GROQ_API_KEY=gsk_...
 
 # Optional - Database (for analytics persistence)
 DATABASE_URL=postgresql://user:password@localhost:5432/xandeum_analytics
@@ -211,7 +211,7 @@ ANOMALY_THRESHOLD_STDDEV=2.5
 | **Language** | TypeScript |
 | **Styling** | Tailwind CSS 4 |
 | **UI Components** | shadcn/ui + Radix UI |
-| **AI SDK** | Vercel AI SDK v5 + OpenAI GPT-4o |
+| **AI SDK** | Vercel AI SDK v5 + Groq (Llama 3.3 70B) |
 | **Data Fetching** | TanStack React Query |
 | **State Management** | Jotai |
 | **Charts** | Recharts |
@@ -251,22 +251,25 @@ GET/POST /api/alerts/rules # Manage alert rules
 
 ## AI Chat Tools
 
-The AI assistant has access to these tools:
+The AI assistant (powered by Llama 3.3 70B via Groq) has access to these tools:
 
 | Tool | Description |
 |------|-------------|
-| `get_pnodes` | List all pNodes with status and metrics |
-| `get_network_stats` | Network-wide statistics |
-| `get_pnode_details` | Detailed info for specific pNode |
-| `search_pnodes` | Filter pNodes by status, location, performance |
-| `get_epoch_info` | Current epoch and slot information |
-| `get_validators` | Validator/vote account information |
+| `get_pnodes` | List all pNodes with status, performance scores, and storage metrics |
+| `get_network_stats` | Network-wide statistics including health score and capacity |
+| `get_pnode_details` | Detailed info for a specific pNode by pubkey |
+| `search_pnodes` | Filter pNodes by status, location, or minimum performance |
+| `get_epoch_info` | Current epoch, slot progress, and block height |
+| `get_validators` | Validator/vote account information with stake amounts |
+| `get_geographic_stats` | Regional distribution showing pNode counts, storage, and performance per region |
 
 Example queries:
-- "Show me the network health"
-- "List all online pNodes"
+- "How many pNodes are currently online?"
+- "Which regions have the most pNodes?"
+- "Show me the top 5 performers by uptime"
+- "What's the current epoch and when does it end?"
 - "Find pNodes with performance above 90"
-- "What's the current epoch?"
+- "Show geographic distribution of the network"
 
 ## Alert Types
 
@@ -312,7 +315,7 @@ npx prisma migrate dev
 3. Configure environment variables:
    - `NEXT_PUBLIC_XANDEUM_RPC_URL`
    - `NEXT_PUBLIC_SOLANA_RPC_URL`
-   - `OPENAI_API_KEY`
+   - `GROQ_API_KEY`
    - `DATABASE_URL` (use Vercel Postgres or Neon)
 4. Deploy!
 
@@ -386,7 +389,7 @@ Browse all storage nodes with table, grid, or map views. Advanced filtering by s
 Interactive Leaflet map showing global pNode distribution with storage/performance overlays.
 
 ### AI Chat Assistant
-GPT-4o powered assistant for natural language queries about network data.
+Llama 3.3 70B powered assistant for natural language queries about network data. Features 7 specialized tools for real-time network analysis.
 
 ### Quantitative Analytics
 Correlation matrices, regression analysis, risk profiling, and 7-day forecasts.
@@ -414,7 +417,7 @@ This project was built for the **Xandeum pNode Analytics Platform Bounty**.
 | **Innovation** | ✅ | AI chat, quant analytics, alerts, forecasting |
 
 ### Key Differentiators
-- **AI-Powered**: GPT-4o integration for natural language network queries
+- **AI-Powered**: Llama 3.3 70B integration (via Groq) with 7 specialized tools for natural language network queries
 - **Real-Time**: WebSocket streaming with polling fallback
 - **Quantitative**: Statistical analysis, correlations, risk profiling
 - **Predictive**: 7/30-day forecasts using regression analysis
