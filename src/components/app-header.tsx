@@ -58,7 +58,7 @@ export function AppHeader() {
 
           <Button variant="ghost" size="sm" asChild className="gap-2">
             <a
-              href="https://xandeum.github.io/xandeum-web3.js"
+              href="https://www.youtube.com/watch?v=7Uffvfz2w-U&list=PLeERy8YL4mpRu9ehrJE4BSW6Zk7gLEMud"
               target="_blank"
               rel="noopener noreferrer"
             >
