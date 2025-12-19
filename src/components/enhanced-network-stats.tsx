@@ -43,7 +43,6 @@ export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetwo
 
   // Real stats - use actual data or null (no fake estimates)
   const activePeers = stats?.activePeers ?? (totalActiveStreams > 0 ? totalActiveStreams : null)
-  const volume24h = stats?.volume24h ?? null  // Only show if we have real data
   const stakingAPY = stats?.stakingAPY ?? null  // Only show if we have real data
 
   if (isLoading) {

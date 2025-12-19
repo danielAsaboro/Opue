@@ -26,7 +26,6 @@ import {
   Code,
   Zap,
   Link,
-  Eye,
   Volume2,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'

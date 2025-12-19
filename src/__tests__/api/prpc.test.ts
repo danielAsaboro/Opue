@@ -16,8 +16,8 @@ vi.mock('next/server', () => ({
   },
 }))
 
-// Mock the RPC endpoints
-const mockRPCResponse = {
+// Mock RPC response structure (used for reference in tests)
+const _mockRPCResponse = {
   jsonrpc: '2.0',
   result: [
     {
@@ -32,6 +32,7 @@ const mockRPCResponse = {
   ],
   id: 1,
 }
+void _mockRPCResponse // Prevent unused warning
 
 describe('/api/prpc Route', () => {
   beforeEach(() => {

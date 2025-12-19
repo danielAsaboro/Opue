@@ -19,10 +19,6 @@ import {
 import type { EpochInfo, StakingInfo } from '@/types/pnode'
 import { pnodeService } from '@/services/pnode.service'
 
-function formatLamports(lamports: number): string {
-  return (lamports / 1000000000).toFixed(4)
-}
-
 function formatTimeRemaining(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)

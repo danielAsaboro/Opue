@@ -1,13 +1,22 @@
-# Xandeum pNode Analytics Platform
+# Xandeum pNode Analytics Platform (Opue)
 
-A comprehensive real-time analytics dashboard for monitoring and managing the Xandeum decentralized storage network.
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://opue.vercel.app/)
+[![GitHub](https://img.shields.io/badge/github-repo-blue)](https://github.com/danielAsaboro/Opue)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+
+A comprehensive real-time analytics dashboard for monitoring and managing the Xandeum decentralized storage network. Built for the [Xandeum pNode Analytics Bounty](https://xandeum.network).
+
+## Live Demo
+
+**[https://opue.vercel.app/](https://opue.vercel.app/)**
 
 ## Quick Start
 
 ```bash
 # Clone and install
-git clone <repo>
-cd opue
+git clone https://github.com/danielAsaboro/Opue.git
+cd Opue
 npm install
 
 # Configure environment
@@ -340,17 +349,81 @@ docker run -p 3000:3000 --env-file .env.local xandeum-analytics
 - Safari 14+
 - Edge 90+
 
+## pRPC Integration
+
+This platform uses **real Xandeum pNode RPC (pnRPC)** calls to fetch live network data:
+
+### Data Sources
+| Source | Port | Methods |
+|--------|------|---------|
+| **pnRPC Seed Nodes** | 6000 | `get-pods-with-stats`, `get-stats` |
+| **Xandeum RPC** | 8899 | `getClusterNodes`, `getEpochInfo` |
+| **GeoIP Service** | - | Location data for nodes |
+
+### Real Data Retrieved
+- Node pubkeys, addresses, and versions
+- Storage metrics: capacity, used bytes, utilization %
+- Uptime (actual seconds from pnRPC)
+- CPU, RAM, network packets
+- Gossip/RPC/TPU endpoints
+
+### Seed Nodes
+```
+192.190.136.28:6000
+173.212.220.65:6000
+192.190.136.37:6000
+```
+
+## Screenshots
+
+### Dashboard
+The main dashboard shows network health, top performers, and quick stats at a glance.
+
+### pNode Explorer
+Browse all storage nodes with table, grid, or map views. Advanced filtering by status, performance, location, and more.
+
+### Geographic Heatmap
+Interactive Leaflet map showing global pNode distribution with storage/performance overlays.
+
+### AI Chat Assistant
+GPT-4o powered assistant for natural language queries about network data.
+
+### Quantitative Analytics
+Correlation matrices, regression analysis, risk profiling, and 7-day forecasts.
+
 ## Links
 
+- **Live Demo**: [https://opue.vercel.app/](https://opue.vercel.app/)
+- **GitHub Repository**: [https://github.com/danielAsaboro/Opue](https://github.com/danielAsaboro/Opue)
 - [Xandeum Website](https://xandeum.network)
 - [Xandeum Documentation](https://xandeum.github.io/xandeum-web3.js)
 - [Xandeum Discord](https://discord.gg/uqRSmmM5m)
 - [AI SDK Documentation](https://ai-sdk.dev)
 
+## Bounty Submission
+
+This project was built for the **Xandeum pNode Analytics Platform Bounty**.
+
+### Judging Criteria Met
+
+| Criteria | Status | Notes |
+|----------|--------|-------|
+| **Functionality** | ✅ | Real pRPC integration to Xandeum seed nodes |
+| **Clarity** | ✅ | Clear metrics, status indicators, tooltips |
+| **User Experience** | ✅ | Multiple views, filtering, keyboard shortcuts |
+| **Innovation** | ✅ | AI chat, quant analytics, alerts, forecasting |
+
+### Key Differentiators
+- **AI-Powered**: GPT-4o integration for natural language network queries
+- **Real-Time**: WebSocket streaming with polling fallback
+- **Quantitative**: Statistical analysis, correlations, risk profiling
+- **Predictive**: 7/30-day forecasts using regression analysis
+- **Alerting**: 7 alert types with browser/email notifications
+
 ## License
 
-Built for the Xandeum pNode Analytics bounty.
+MIT License - Built for the Xandeum pNode Analytics bounty.
 
 ---
 
-Built with Next.js 15, React 19, Vercel AI SDK, and shadcn/ui
+Built with Next.js 15, React 19, Vercel AI SDK, and shadcn/ui by [Daniel Asaboro](https://github.com/danielAsaboro)

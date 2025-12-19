@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, Layers, Hash, Activity, Zap } from 'lucide-react'
+import { Clock, Layers, Hash, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface EpochInfoData {

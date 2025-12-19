@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { Download, FileText, FileJson, FileSpreadsheet, Check } from 'lucide-react'
+import { Download, FileText, FileJson, FileSpreadsheet } from 'lucide-react'
 import type { PNode } from '@/types/pnode'
 import { getExportService } from '@/services/export.service'
 import type { ExportOptions } from '@/services/export.service'
@@ -237,14 +237,3 @@ export function ExportDialog({ pnodes, trigger, className = '' }: ExportDialogPr
     </Dialog>
   )
 }
-
-
-
-
-
-
-
-
-
-
-

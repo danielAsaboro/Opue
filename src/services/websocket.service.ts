@@ -1,5 +1,4 @@
 import { w3cwebsocket as W3CWebSocket } from 'websocket'
-import type { PNode } from '@/types/pnode'
 
 export interface WebSocketMessage {
   jsonrpc: string
@@ -329,14 +328,3 @@ export function getWebSocketService(): WebSocketService {
   }
   return wsService
 }
-
-
-
-
-
-
-
-
-
-
-

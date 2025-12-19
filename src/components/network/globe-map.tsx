@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import type { PNode } from '@/types/pnode';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -74,10 +74,20 @@ const eventConfig: Record<GossipEventType, { color: string; label: string; icon:
     ledger_update: { color: '#6366f1', label: 'Ledger Update', icon: '📊' },
 };
 
+// Type for the Globe component ref - using generic object to avoid type conflicts with react-globe.gl
+interface GlobeRef {
+    pointOfView: (pov: { lat: number; lng: number; altitude: number }) => void;
+    controls: () => { autoRotate: boolean; autoRotateSpeed: number } | null;
+}
+
+// Globe component type - use generic to avoid conflicts with react-globe.gl's complex types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type GlobeComponent = React.ComponentType<any>;
+
 export function GlobeMap({ pnodes, className }: GlobeMapProps) {
-    const globeRef = useRef<any>(null);
+    const globeRef = useRef<GlobeRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [Globe, setGlobe] = useState<any>(null);
+    const [Globe, setGlobe] = useState<GlobeComponent | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [events, setEvents] = useState<GossipEvent[]>([]);
     const [arcs, setArcs] = useState<ArcData[]>([]);

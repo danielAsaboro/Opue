@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CheckCircle, AlertTriangle, XCircle, TrendingDown, Activity } from 'lucide-react'
+import { CheckCircle, XCircle, TrendingDown, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TimelineEvent {
@@ -104,18 +104,8 @@ const eventLabels = {
   maintenance: 'Maintenance',
 }
 
-export function PNodeTimeline({ pnodeId, performanceHistory, className }: PNodeTimelineProps) {
+export function PNodeTimeline({ performanceHistory, className }: PNodeTimelineProps) {
   const events = useMemo(() => generateEventsFromHistory(performanceHistory), [performanceHistory])
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
 
   const formatRelativeTime = (timestamp: number) => {
     const now = Date.now()

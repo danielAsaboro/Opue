@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { AlertTriangle, TrendingUp, TrendingDown, Activity, Brain, Target, Zap, Shield } from 'lucide-react'
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -19,9 +17,6 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts'
 import type { PNode } from '@/types/pnode'
 import type {
@@ -31,7 +26,6 @@ import type {
   AnalyticsMetrics,
 } from '@/services/analytics.service'
 import { getAnalyticsService } from '@/services/analytics.service'
-import { formatBytes } from '@/lib/format'
 
 interface AdvancedAnalyticsDashboardProps {
   pnodes: PNode[]
@@ -485,7 +479,7 @@ export function AdvancedAnalyticsDashboard({ pnodes, className = '' }: AdvancedA
                       borderRadius: '8px',
                     }}
                   />
-                  {healthComponents.map((component, index) => (
+                  {healthComponents.map((component) => (
                     <Bar key={component.name} dataKey="value" fill={component.color} />
                   ))}
                 </BarChart>
@@ -516,14 +510,3 @@ export function AdvancedAnalyticsDashboard({ pnodes, className = '' }: AdvancedA
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-

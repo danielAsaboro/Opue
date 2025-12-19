@@ -1,6 +1,6 @@
 'use client'
 
-import { Server, MapPin, Gauge, HardDrive, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { Server, MapPin, HardDrive, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PNodeData {

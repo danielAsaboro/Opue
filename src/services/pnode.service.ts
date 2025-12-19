@@ -603,7 +603,6 @@ export class PNodeService {
 
     // Try to get historical data from database to calculate real metrics
     let uptime = 0
-    let isPerformanceEstimated = true
 
     try {
       // Only query database on server-side
@@ -627,7 +626,6 @@ export class PNodeService {
           // Calculate real uptime from historical snapshots
           const onlineSnapshots = dbPNode.snapshots.filter(s => s.status === 'online').length
           uptime = (onlineSnapshots / dbPNode.snapshots.length) * 100
-          isPerformanceEstimated = false
 
           // Use average from historical data if available
           const avgLatency = dbPNode.snapshots.reduce((sum, s) => sum + s.averageLatency, 0) / dbPNode.snapshots.length
@@ -687,14 +685,12 @@ export class PNodeService {
     // Try to get real stats from pnRPC (port 6000)
     let storage: StorageMetrics
     let performance: PerformanceMetrics
-    let isEstimated = true
 
     // Only try pnRPC on server-side (avoids CORS issues)
     if (!this.isBrowser()) {
       const stats = await this.fetchPnRPCStats(ip)
       if (stats && stats.file_size > 0) {
         // Real data from pnRPC
-        isEstimated = false
 
         // Calculate uptime percentage (stats.uptime is in seconds)
         // Assume max uptime reference of 30 days for percentage calculation
@@ -709,9 +705,8 @@ export class PNodeService {
           isEstimated: false
         }
 
-        // Use real CPU/RAM data for performance estimation
+        // Use real CPU data for performance estimation
         const cpuLoad = stats.cpu_percent
-        const ramLoad = stats.ram_total > 0 ? (stats.ram_used / stats.ram_total) * 100 : 0
 
         performance = {
           averageLatency: Math.max(10, 50 - (100 - cpuLoad) * 0.4), // Lower CPU = lower latency estimate

@@ -1,5 +1,29 @@
 {
-  "name": "Opue",
+  "name": "opue",
+  "displayName": "Xandeum pNode Analytics Platform",
+  "description": "Real-time analytics dashboard for monitoring and managing the Xandeum decentralized storage network",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Daniel Asaboro",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielAsaboro/Opue.git"
+  },
+  "homepage": "https://opue.vercel.app",
+  "keywords": [
+    "xandeum",
+    "pnode",
+    "analytics",
+    "dashboard",
+    "blockchain",
+    "solana",
+    "decentralized-storage",
+    "nextjs",
+    "react",
+    "typescript",
+    "ai"
+  ],
   "scripts": {
     "build": "prisma generate && next build",
     "ci": "npm run build && npm run lint && npm run format:check && npm run test",
@@ -12,19 +36,6 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
-  "displayName": "Web3js Boilerplate",
-  "usecase": "Legacy",
-  "description": "Next.js, Tailwind, @solana/web3.js, Wallet Adapter",
-  "keywords": [
-    "nextjs",
-    "react",
-    "solana-web3js",
-    "tailwind",
-    "typescript",
-    "wallet-adapter"
-  ],
-  "version": "0.0.0",
-  "private": true,
   "dependencies": {
     "@ai-sdk/groq": "^2.0.33",
     "@ai-sdk/openai": "^2.0.86",
