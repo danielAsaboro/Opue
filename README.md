@@ -398,6 +398,7 @@ Correlation matrices, regression analysis, risk profiling, and 7-day forecasts.
 
 - **Live Demo**: [https://opue.vercel.app/](https://opue.vercel.app/)
 - **GitHub Repository**: [https://github.com/danielAsaboro/Opue](https://github.com/danielAsaboro/Opue)
+- **Video Tutorials**: [YouTube Playlist](https://www.youtube.com/playlist?list=PLeERy8YL4mpRu9ehrJE4BSW6Zk7gLEMud) - Complete walkthrough of all features
 - [Xandeum Website](https://xandeum.network)
 - [Xandeum Documentation](https://xandeum.github.io/xandeum-web3.js)
 - [Xandeum Discord](https://discord.gg/uqRSmmM5m)

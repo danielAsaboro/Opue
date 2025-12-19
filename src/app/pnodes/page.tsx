@@ -158,7 +158,15 @@ export default function PNodesPage() {
       </div>
 
       {/* Content */}
-      {viewMode === 'table' && <PNodeTable pnodes={displayPNodes} isLoading={false} onSelectPNode={setSelectedPNodeId} />}
+      {viewMode === 'table' && (
+        <PNodeTable
+          pnodes={displayPNodes}
+          isLoading={false}
+          onSelectPNode={setSelectedPNodeId}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
+        />
+      )}
 
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

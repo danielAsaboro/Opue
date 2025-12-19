@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatBytes, formatRelativeTime, truncatePublicKey, formatPercentage, formatUtilization } from '@/lib/format';
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Bell, BellOff, Star } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/lib/watchlist';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { PNode } from '@/types/pnode';
@@ -46,6 +48,8 @@ interface PNodeTableProps {
     pnodes: PNode[];
     isLoading?: boolean;
     onSelectPNode?: (id: string) => void;
+    favorites?: string[];
+    onToggleFavorite?: (id: string) => void;
 }
 
 interface SortableHeaderProps {
@@ -82,11 +86,28 @@ function SortableHeader({ field, currentSort, currentDirection, onSort, children
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export function PNodeTable({ pnodes, isLoading, onSelectPNode }: PNodeTableProps) {
+export function PNodeTable({ pnodes, isLoading, onSelectPNode, favorites = [], onToggleFavorite }: PNodeTableProps) {
     const [sortField, setSortField] = useState<SortField>('performance');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(10);
+    const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        const watched = new Set(pnodes.filter(p => isInWatchlist(p.id)).map(p => p.id));
+        setWatchedIds(watched);
+    }, [pnodes]);
+
+    const handleToggleWatchlist = (e: React.MouseEvent, pnodeId: string) => {
+        e.stopPropagation();
+        if (watchedIds.has(pnodeId)) {
+            removeFromWatchlist(pnodeId);
+            setWatchedIds(prev => { const next = new Set(prev); next.delete(pnodeId); return next; });
+        } else {
+            addToWatchlist(pnodeId);
+            setWatchedIds(prev => new Set(prev).add(pnodeId));
+        }
+    };
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -213,6 +234,7 @@ export function PNodeTable({ pnodes, isLoading, onSelectPNode }: PNodeTableProps
                         <SortableHeader field="lastSeen" currentSort={sortField} currentDirection={sortDirection} onSort={handleSort}>
                             Last Seen
                         </SortableHeader>
+                        <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -284,6 +306,46 @@ export function PNodeTable({ pnodes, isLoading, onSelectPNode }: PNodeTableProps
                             <TableCell>{pnode.location || 'Unknown'}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                                 {formatRelativeTime(pnode.lastSeen)}
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={(e) => handleToggleWatchlist(e, pnode.id)}
+                                                >
+                                                    {watchedIds.has(pnode.id) ? (
+                                                        <Bell className="h-4 w-4 fill-primary text-primary" />
+                                                    ) : (
+                                                        <BellOff className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                {watchedIds.has(pnode.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(pnode.id); }}
+                                                >
+                                                    <Star className={`h-4 w-4 ${favorites.includes(pnode.id) ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'}`} />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                {favorites.includes(pnode.id) ? 'Remove from Favorites' : 'Add to Favorites'}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
