@@ -17,6 +17,12 @@ import {
   HelpCircle,
   Menu,
   X,
+  BookOpen,
+  Rocket,
+  Sparkles,
+  Code,
+  FileCode,
+  Blocks,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -48,6 +54,17 @@ const navSections: NavSection[] = [
       { label: 'Watchlist', path: '/watchlist', icon: Star },
       { label: 'Alerts', path: '/alerts', icon: Bell },
       { label: 'Compare', path: '/compare', icon: GitCompare },
+    ],
+  },
+  {
+    title: 'DOCUMENTATION',
+    items: [
+      { label: 'Docs', path: '/docs', icon: BookOpen },
+      { label: 'Getting Started', path: '/docs/getting-started', icon: Rocket },
+      { label: 'Features', path: '/docs/features', icon: Sparkles },
+      { label: 'pRPC Integration', path: '/docs/prpc', icon: Code },
+      { label: 'API Reference', path: '/docs/api', icon: FileCode },
+      { label: 'Architecture', path: '/docs/architecture', icon: Blocks },
     ],
   },
   {

@@ -5,6 +5,7 @@ import { PNodeTableRenderer, SearchResultsRenderer } from './data-table-renderer
 import { PNodeDetailRenderer } from './pnode-detail-renderer'
 import { EpochProgressRenderer } from './epoch-renderer'
 import { ValidatorTableRenderer } from './validator-table-renderer'
+import { GeographicStatsRenderer } from './geographic-renderer'
 
 /**
  * Registry mapping tool names to their visual renderers
@@ -26,6 +27,9 @@ const toolRenderers: Record<string, React.FC<{ data: unknown }>> = {
 
   // Validators - shows stake table with commission badges
   'get_validators': ValidatorTableRenderer,
+
+  // Geographic distribution - shows regions table with pNode counts
+  'get_geographic_stats': GeographicStatsRenderer,
 }
 
 /**
@@ -66,4 +70,5 @@ export {
   PNodeDetailRenderer,
   EpochProgressRenderer,
   ValidatorTableRenderer,
+  GeographicStatsRenderer,
 }
