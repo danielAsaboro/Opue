@@ -168,9 +168,9 @@ export class AdvancedAnalyticsService {
   /**
    * Get comprehensive analytics metrics
    */
-  getAnalyticsMetrics(pnodes: PNode[]): AnalyticsMetrics {
+  async getAnalyticsMetrics(pnodes: PNode[]): Promise<AnalyticsMetrics> {
     return {
-      networkGrowth: this.calculateNetworkGrowth(pnodes),
+      networkGrowth: await this.calculateNetworkGrowth(pnodes),
       decentralization: this.calculateDecentralizationMetrics(pnodes),
       reliability: this.calculateReliabilityMetrics(pnodes),
       predictions: this.generatePredictionsData(pnodes),
@@ -439,21 +439,48 @@ export class AdvancedAnalyticsService {
     return recommendations
   }
 
-  private calculateNetworkGrowth(pnodes: PNode[]): AnalyticsMetrics['networkGrowth'] {
-    // Generate mock historical data for demo
-    const baseCount = pnodes.length * 0.8
-    const pnodeCount = Array.from({ length: 30 }, (_, i) =>
-      Math.round(baseCount + (pnodes.length - baseCount) * (i / 29)),
-    )
+  private async calculateNetworkGrowth(pnodes: PNode[]): Promise<AnalyticsMetrics['networkGrowth']> {
+    // Query real historical data from NetworkSnapshot table
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const storageCapacity = pnodeCount.map(
-      (count) => count * (pnodes.reduce((sum, p) => sum + p.storage.capacityBytes, 0) / pnodes.length),
-    )
+      const snapshots = await prisma.networkSnapshot.findMany({
+        where: { timestamp: { gte: thirtyDaysAgo } },
+        orderBy: { timestamp: 'asc' },
+        select: {
+          timestamp: true,
+          totalPNodes: true,
+          totalCapacityBytes: true,
+          averagePerformance: true,
+        },
+      })
 
-    const performance = Array.from({ length: 30 }, () => 70 + Math.random() * 20)
-    const timestamps = Array.from({ length: 30 }, (_, i) => new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000))
+      if (snapshots.length > 0) {
+        // Use real data from database
+        return {
+          pnodeCount: snapshots.map(s => s.totalPNodes),
+          storageCapacity: snapshots.map(s => Number(s.totalCapacityBytes)),
+          performance: snapshots.map(s => s.averagePerformance),
+          timestamps: snapshots.map(s => s.timestamp),
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to fetch historical network data:', error)
+    }
 
-    return { pnodeCount, storageCapacity, performance, timestamps }
+    // Fallback: Return current snapshot only if no historical data
+    // No random data - just honest "we only have current data"
+    const now = new Date()
+    const currentCount = pnodes.length
+    const currentCapacity = pnodes.reduce((sum, p) => sum + p.storage.capacityBytes, 0)
+    const currentPerformance = pnodes.reduce((sum, p) => sum + p.performanceScore, 0) / Math.max(pnodes.length, 1)
+
+    return {
+      pnodeCount: [currentCount],
+      storageCapacity: [currentCapacity],
+      performance: [currentPerformance],
+      timestamps: [now],
+    }
   }
 
   private calculateDecentralizationMetrics(pnodes: PNode[]): AnalyticsMetrics['decentralization'] {

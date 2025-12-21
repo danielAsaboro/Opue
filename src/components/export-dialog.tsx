@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { Download, FileText, FileJson, FileSpreadsheet } from 'lucide-react'
+import { Download, FileText, FileJson, FileSpreadsheet, Check } from 'lucide-react'
 import type { PNode } from '@/types/pnode'
 import { getExportService } from '@/services/export.service'
 import type { ExportOptions } from '@/services/export.service'
+import { toast } from 'sonner'
 
 interface ExportDialogProps {
   pnodes: PNode[]
@@ -35,10 +36,11 @@ export function ExportDialog({ pnodes, trigger, className = '' }: ExportDialogPr
     setIsExporting(true)
     try {
       await exportService.exportPNodes(pnodes, options)
+      toast.success(`Successfully exported ${pnodes.length} pNodes as ${options.format.toUpperCase()}`)
       setOpen(false)
     } catch (error) {
       console.error('Export failed:', error)
-      // Could show error toast here
+      toast.error('Export failed. Please try again.')
     } finally {
       setIsExporting(false)
     }
@@ -235,5 +237,13 @@ export function ExportDialog({ pnodes, trigger, className = '' }: ExportDialogPr
     </Dialog>
   )
 }
+
+
+
+
+
+
+
+
 
 

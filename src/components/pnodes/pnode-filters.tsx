@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { PNode } from '@/types/pnode';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export function PNodeFilters({ pnodes, onFilterChange }: PNodeFiltersProps) {
     }, [pnodes]);
 
     // Apply filters
-    useMemo(() => {
+    useEffect(() => {
         let filtered = pnodes;
 
         // Search filter

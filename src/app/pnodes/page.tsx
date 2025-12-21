@@ -16,7 +16,7 @@ import { getFavorites, toggleFavorite } from '@/lib/favorites'
 import { formatBytes } from '@/lib/format'
 import { ExportDialog } from '@/components/export-dialog'
 import type { PNode } from '@/types/pnode'
-import Link from 'next/link'
+import { PNodeDetailPanel } from '@/components/pnodes/pnode-detail-panel'
 
 export default function PNodesPage() {
   const { data: allPNodes, isLoading, error, refetch } = usePNodes()
@@ -24,6 +24,7 @@ export default function PNodesPage() {
   const [viewMode, setViewMode] = useState<'table' | 'grid' | 'map'>('table')
   const [favorites, setFavorites] = useState<string[]>([])
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [selectedPNodeId, setSelectedPNodeId] = useState<string | null>(null)
 
   useEffect(() => {
     setFavorites(getFavorites())
@@ -105,18 +106,20 @@ export default function PNodesPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {topPerformers.map((pnode, index) => (
-                <Link key={pnode.id} href={`/pnodes/${encodeURIComponent(pnode.id)}`}>
-                  <div className="border rounded-lg p-3 hover:bg-accent transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="outline">#{index + 1}</Badge>
-                      <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {pnode.performanceScore}
-                      </span>
-                    </div>
-                    <p className="text-xs font-mono truncate">{pnode.id}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{formatBytes(pnode.storage.capacityBytes)}</p>
+                <div
+                  key={pnode.id}
+                  className="border rounded-lg p-3 hover:bg-accent transition-all cursor-pointer"
+                  onClick={() => setSelectedPNodeId(pnode.id)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline">#{index + 1}</Badge>
+                    <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {pnode.performanceScore}
+                    </span>
                   </div>
-                </Link>
+                  <p className="text-xs font-mono truncate">{pnode.id}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formatBytes(pnode.storage.capacityBytes)}</p>
+                </div>
               ))}
             </div>
           </CardContent>
@@ -155,7 +158,7 @@ export default function PNodesPage() {
       </div>
 
       {/* Content */}
-      {viewMode === 'table' && <PNodeTable pnodes={displayPNodes} isLoading={false} />}
+      {viewMode === 'table' && <PNodeTable pnodes={displayPNodes} isLoading={false} onSelectPNode={setSelectedPNodeId} />}
 
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -165,12 +168,21 @@ export default function PNodesPage() {
               pnode={pnode}
               isFavorite={favorites.includes(pnode.id)}
               onToggleFavorite={handleToggleFavorite}
+              allPNodes={allPNodes}
+              onSelectPNode={setSelectedPNodeId}
             />
           ))}
         </div>
       )}
 
       {viewMode === 'map' && <PNodeMap pnodes={displayPNodes} />}
+
+      {/* Detail Panel */}
+      <PNodeDetailPanel
+        pnodeId={selectedPNodeId}
+        open={!!selectedPNodeId}
+        onClose={() => setSelectedPNodeId(null)}
+      />
     </div>
   )
 }

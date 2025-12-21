@@ -5,6 +5,8 @@ import { getWebSocketService } from '@/services/websocket.service'
 import { getAlertService } from '@/services/alert.service'
 import type { PNode, PNodeDetails, NetworkStats } from '@/types/pnode'
 
+// pnodeService is still used by useNetworkStats
+
 /**
  * Hook to fetch all pNodes with caching, auto-refetch, and real-time WebSocket updates
  */
@@ -16,7 +18,14 @@ export function usePNodes(): UseQueryResult<PNode[], Error> {
   const query = useQuery({
     queryKey: ['pnodes'],
     queryFn: async () => {
-      const pnodes = await pnodeService.fetchAllPNodes()
+      // Fetch via API route to get server-side pnRPC stats
+      const res = await fetch('/api/pnodes')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to fetch pNodes')
+      }
+      const pnodes: PNode[] = await res.json()
+
       // Check for alerts when data is fetched
       const alertService = getAlertService()
       alertService.checkAlerts(pnodes).catch((error) => {
@@ -72,12 +81,19 @@ export function usePNodes(): UseQueryResult<PNode[], Error> {
 }
 
 /**
- * Hook to fetch detailed pNode information
+ * Hook to fetch detailed pNode information via API route (server-side GeoIP)
  */
 export function usePNodeDetails(pnodeId: string): UseQueryResult<PNodeDetails, Error> {
   return useQuery({
     queryKey: ['pnode', pnodeId],
-    queryFn: () => pnodeService.fetchPNodeDetails(pnodeId),
+    queryFn: async () => {
+      const res = await fetch(`/api/pnodes/${encodeURIComponent(pnodeId)}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to fetch pNode details');
+      }
+      return res.json();
+    },
     staleTime: 60000, // 1 minute
     enabled: !!pnodeId, // Only fetch if pnodeId is provided
   })
