@@ -800,16 +800,36 @@ export class PNodeService {
    * Fetch all pNodes from pnRPC using get-pods-with-stats (PRIMARY SOURCE)
    * Falls back to getClusterNodes if pnRPC is unavailable
    * Throws PRPCError if unable to connect to any endpoint
+   * @param options.includeNetworkMetrics If true, fetch CPU/RAM/packet data (slower, use for indexing)
    */
-  async fetchAllPNodes(): Promise<PNode[]> {
+  async fetchAllPNodes(options?: { includeNetworkMetrics?: boolean }): Promise<PNode[]> {
+    const fetchNetworkMetrics = options?.includeNetworkMetrics ?? false
+
     // Try pnRPC first - this is the PRIMARY source with real data
     try {
       const podsWithStats = await this.fetchPodsWithStats()
-      console.log(`[pnRPC] Transforming ${podsWithStats.length} pods with stats to PNode format`)
-      // Transform pods in parallel with GeoIP lookups
-      const pnodes = await Promise.all(podsWithStats.map((pod) => this.transformPodWithStatsToPNode(pod)))
-      console.log(`[pnRPC] Successfully transformed ${pnodes.length} pNodes with real data`)
-      return pnodes
+      console.log(`[pnRPC] Transforming ${podsWithStats.length} pods with stats to PNode format (networkMetrics: ${fetchNetworkMetrics})`)
+
+      // Transform pods - if fetching network metrics, do it in batches to avoid overwhelming
+      if (fetchNetworkMetrics) {
+        // Batch process to avoid too many concurrent requests
+        const batchSize = 10
+        const pnodes: PNode[] = []
+        for (let i = 0; i < podsWithStats.length; i += batchSize) {
+          const batch = podsWithStats.slice(i, i + batchSize)
+          const batchResults = await Promise.all(
+            batch.map((pod) => this.transformPodWithStatsToPNode(pod, true))
+          )
+          pnodes.push(...batchResults)
+        }
+        console.log(`[pnRPC] Successfully transformed ${pnodes.length} pNodes with network metrics`)
+        return pnodes
+      } else {
+        // Fast path without network metrics
+        const pnodes = await Promise.all(podsWithStats.map((pod) => this.transformPodWithStatsToPNode(pod, false)))
+        console.log(`[pnRPC] Successfully transformed ${pnodes.length} pNodes with real data`)
+        return pnodes
+      }
     } catch (error) {
       console.warn('[pnRPC] Failed to fetch from pnRPC, falling back to RPC endpoints:', error)
     }

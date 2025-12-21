@@ -226,22 +226,38 @@ export function PNodeTable({ pnodes, isLoading, onSelectPNode }: PNodeTableProps
                                 {truncatePublicKey(pnode.id, 6, 6)}
                             </TableCell>
                             <TableCell>
-                                <Badge variant={getStatusBadgeVariant(pnode.status)}>
-                                    {pnode.status}
-                                </Badge>
+                                <div className="flex items-center gap-1.5">
+                                    <Badge variant={getStatusBadgeVariant(pnode.status)}>
+                                        {pnode.status}
+                                    </Badge>
+                                    {pnode.isPublic && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                            Public
+                                        </span>
+                                    )}
+                                </div>
                             </TableCell>
                             <TableCell>
                                 {pnode.storage.isEstimated ? (
                                     <span className="text-muted-foreground">--</span>
                                 ) : (
-                                    formatBytes(pnode.storage.capacityBytes)
+                                    <div className="flex flex-col">
+                                        <span>{formatBytes(pnode.storage.capacityBytes)}</span>
+                                        {pnode.storage.usedBytes > 0 && (
+                                            <span className="text-xs text-muted-foreground">
+                                                {formatBytes(pnode.storage.usedBytes)} used
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </TableCell>
                             <TableCell>
                                 {pnode.storage.isEstimated ? (
                                     <span className="text-muted-foreground">--</span>
                                 ) : (
-                                    formatPercentage(pnode.storage.utilization)
+                                    <span className={pnode.storage.utilization > 80 ? 'text-amber-600' : ''}>
+                                        {formatPercentage(pnode.storage.utilization, 4)}
+                                    </span>
                                 )}
                             </TableCell>
                             <TableCell>

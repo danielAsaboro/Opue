@@ -13,7 +13,7 @@ import {
   Zap,
   HardDrive,
 } from 'lucide-react'
-import { formatBytes } from '@/lib/format'
+import { formatBytes, formatDuration } from '@/lib/format'
 import type { PNode, NetworkStats } from '@/types/pnode'
 
 interface EnhancedNetworkStatsProps {
@@ -23,10 +23,13 @@ interface EnhancedNetworkStatsProps {
 }
 
 export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetworkStatsProps) {
-  // Calculate longest running node
+  // Calculate longest running node (prefer nodes with real uptimeSeconds data)
   const longestRunningNode = pnodes?.reduce((longest, current) => {
     if (!longest) return current
-    return current.performance.uptime > longest.performance.uptime ? current : longest
+    // Use uptimeSeconds if available for more accurate comparison
+    const longestUptime = longest.performance.uptimeSeconds ?? longest.performance.uptime * 25920 // fallback: 30 days in seconds * percentage
+    const currentUptime = current.performance.uptimeSeconds ?? current.performance.uptime * 25920
+    return currentUptime > longestUptime ? current : longest
   }, undefined as PNode | undefined)
 
   // Calculate average latency from pnodes
@@ -34,10 +37,14 @@ export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetwo
     ? pnodes.reduce((sum, p) => sum + p.performance.averageLatency, 0) / pnodes.length
     : 0
 
-  // Mock additional stats (in production these would come from the API)
-  const activePeers = stats?.activePeers ?? Math.floor((stats?.onlinePNodes || 0) * 2.5)
-  const volume24h = stats?.volume24h ?? (stats?.totalUsed || 0) * 0.12
-  const stakingAPY = stats?.stakingAPY ?? 7.2
+  // Calculate real active streams from network metrics (sum of all pNode active streams)
+  const totalActiveStreams = pnodes?.reduce((sum, p) =>
+    sum + (p.networkMetrics?.activeStreams ?? 0), 0) ?? 0
+
+  // Real stats - use actual data or null (no fake estimates)
+  const activePeers = stats?.activePeers ?? (totalActiveStreams > 0 ? totalActiveStreams : null)
+  const volume24h = stats?.volume24h ?? null  // Only show if we have real data
+  const stakingAPY = stats?.stakingAPY ?? null  // Only show if we have real data
 
   if (isLoading) {
     return (
@@ -71,18 +78,22 @@ export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetwo
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Peers</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Streams</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activePeers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Connected network peers
-            </p>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-green-500">Live connections</span>
+            <div className="text-2xl font-bold">
+              {activePeers !== null ? activePeers.toLocaleString() : 'N/A'}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Network connections
+            </p>
+            {activePeers !== null && (
+              <div className="flex items-center gap-1 mt-2">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs text-green-500">Live connections</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -92,31 +103,39 @@ export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetwo
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{stakingAPY}%</div>
+            <div className="text-2xl font-bold text-green-500">
+              {stakingAPY !== null ? `${stakingAPY.toFixed(2)}%` : 'N/A'}
+            </div>
             <p className="text-xs text-muted-foreground">
               Annual percentage yield
             </p>
-            <div className="flex items-center gap-1 mt-2 text-xs text-green-500">
-              <TrendingUp className="h-3 w-3" />
-              <span>+0.2% from last epoch</span>
-            </div>
+            {stakingAPY !== null && (
+              <div className="flex items-center gap-1 mt-2 text-xs text-green-500">
+                <TrendingUp className="h-3 w-3" />
+                <span>From inflation rate</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">24h Volume</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Storage</CardTitle>
             <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatBytes(volume24h)}</div>
-            <p className="text-xs text-muted-foreground">
-              Storage transactions
-            </p>
-            <div className="flex items-center gap-1 mt-2 text-xs text-blue-500">
-              <Zap className="h-3 w-3" />
-              <span>High activity</span>
+            <div className="text-2xl font-bold">
+              {stats?.totalCapacity ? formatBytes(stats.totalCapacity) : 'N/A'}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Network capacity
+            </p>
+            {stats?.totalUsed !== undefined && stats.totalCapacity > 0 && (
+              <div className="flex items-center gap-1 mt-2 text-xs text-blue-500">
+                <Zap className="h-3 w-3" />
+                <span>{formatBytes(stats.totalUsed)} used</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -144,10 +163,14 @@ export function EnhancedNetworkStats({ stats, pnodes, isLoading }: EnhancedNetwo
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-amber-500" />
                   <span className="text-2xl font-bold text-amber-500">
-                    {longestRunningNode.performance.uptime.toFixed(2)}%
+                    {longestRunningNode.performance.uptimeSeconds
+                      ? formatDuration(longestRunningNode.performance.uptimeSeconds)
+                      : `${longestRunningNode.performance.uptime.toFixed(2)}%`}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">Uptime</p>
+                <p className="text-xs text-muted-foreground">
+                  {longestRunningNode.performance.uptimeSeconds ? 'Running time' : 'Uptime'}
+                </p>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
