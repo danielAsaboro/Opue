@@ -1,19 +1,19 @@
 /**
- * Chat API Route - AI SDK v5 with OpenAI and MCP Tools
+ * Chat API Route - AI SDK v5 with Groq and MCP Tools
  * Streams responses using Vercel AI SDK with tool execution
  */
 import { streamText, tool, convertToModelMessages, UIMessage } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { groq } from '@ai-sdk/groq'
 import { z } from 'zod'
 import { PNodeService } from '@/services/pnode.service'
 
 const pnodeService = new PNodeService()
 
 export async function POST(req: Request) {
-  // Check for OpenAI API key
-  if (!process.env.OPENAI_API_KEY) {
+  // Check for Groq API key
+  if (!process.env.GROQ_API_KEY) {
     return Response.json(
-      { error: 'OpenAI API key not configured. Please add OPENAI_API_KEY to your .env.local file.' },
+      { error: 'Groq API key not configured. Please add GROQ_API_KEY to your .env.local file.' },
       { status: 503 }
     )
   }
@@ -21,7 +21,8 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
 
   const result = streamText({
-    model: openai('gpt-4o'),
+    model: groq('llama-3.3-70b-versatile'),
+    toolChoice: 'auto',
     system: `You are a helpful assistant for the Xandeum pNode Analytics platform.
 
 Xandeum is a decentralized storage network built on Solana. pNodes are storage provider nodes that contribute capacity to the network.
@@ -39,15 +40,17 @@ When showing pNode IDs, truncate them for readability (first 8 chars...last 4 ch
     tools: {
       get_pnodes: tool({
         description: 'Get all pNodes from the Xandeum network with their status, performance scores, and locations',
-        inputSchema: z.object({}),
-        execute: async () => {
+        inputSchema: z.object({
+          limit: z.number().optional().describe('Maximum pNodes to return (default 10)'),
+        }),
+        execute: async ({ limit = 10 }) => {
           const pnodes = await pnodeService.fetchAllPNodes()
           return {
             total: pnodes.length,
             online: pnodes.filter((p) => p.status === 'online').length,
             offline: pnodes.filter((p) => p.status === 'offline').length,
             delinquent: pnodes.filter((p) => p.status === 'delinquent').length,
-            pnodes: pnodes.slice(0, 10).map((p) => ({
+            pnodes: pnodes.slice(0, limit).map((p) => ({
               id: p.id,
               status: p.status,
               performanceScore: p.performanceScore,
@@ -182,10 +185,11 @@ When showing pNode IDs, truncate them for readability (first 8 chars...last 4 ch
 
 // Health check endpoint
 export async function GET() {
-  const hasApiKey = !!process.env.OPENAI_API_KEY
+  const hasApiKey = !!process.env.GROQ_API_KEY
   return Response.json({
     status: hasApiKey ? 'ok' : 'unconfigured',
-    model: 'gpt-4o',
+    model: 'llama-3.3-70b-versatile',
+    provider: 'groq',
     apiKeyConfigured: hasApiKey,
     tools: ['get_pnodes', 'get_network_stats', 'get_pnode_details', 'search_pnodes', 'get_epoch_info', 'get_validators'],
   })

@@ -1,11 +1,8 @@
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { pnodeService } from '@/services/pnode.service'
 import { getWebSocketService } from '@/services/websocket.service'
 import { getAlertService } from '@/services/alert.service'
 import type { PNode, PNodeDetails, NetworkStats } from '@/types/pnode'
-
-// pnodeService is still used by useNetworkStats
 
 /**
  * Hook to fetch all pNodes with caching, auto-refetch, and real-time WebSocket updates
@@ -109,7 +106,15 @@ export function useNetworkStats(): UseQueryResult<NetworkStats, Error> {
 
   const query = useQuery({
     queryKey: ['network-stats'],
-    queryFn: () => pnodeService.fetchNetworkStats(),
+    queryFn: async () => {
+      // Fetch via API route to run server-side (avoids CORS/network issues with pnRPC)
+      const res = await fetch('/api/network-stats')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to fetch network stats')
+      }
+      return res.json()
+    },
     staleTime: 15000,
     refetchInterval: 30000, // Poll every 30 seconds
     refetchIntervalInBackground: true,

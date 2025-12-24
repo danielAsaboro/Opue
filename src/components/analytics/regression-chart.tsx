@@ -169,8 +169,8 @@ export function RegressionChart({ insight, dataPoints = [], className }: Regress
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
                 }}
-                formatter={(value: number, name: string) => [
-                  value.toFixed(2),
+                formatter={(value, name) => [
+                  typeof value === 'number' ? value.toFixed(2) : String(value),
                   name === 'scatter' ? 'Actual' : name === 'line' ? 'Predicted' : name,
                 ]}
               />

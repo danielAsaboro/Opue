@@ -26,6 +26,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@ai-sdk/groq": "^2.0.33",
     "@ai-sdk/openai": "^2.0.86",
     "@ai-sdk/react": "^2.0.115",
     "@modelcontextprotocol/sdk": "^1.24.3",
@@ -74,7 +75,7 @@
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^5.0.0",
     "react-sparklines": "^1.7.0",
-    "recharts": "^3.5.1",
+    "recharts": "^3.6.0",
     "shiki": "^3.20.0",
     "sonner": "^2.0.7",
     "streamdown": "^1.6.10",
